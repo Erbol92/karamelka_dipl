@@ -36,12 +36,11 @@
             <p><strong>Цена: {{object_list.0.price}}</strong></p>
         </div>
         <div class="product-tile-actions">
-            <button class="add-to-cart">добавить в корзину</button>
-            <button class="view-details">детальнее</button>
+            <a href="{% url 'add_to_cart' product_id=1 %}" class="add-to-cart">добавить в корзину</a>
+            <a href="#" class="view-details">детальнее</a>
         </div>
     </div>
     {% endfor %}
     <a href="{% url 'constructor' %}">или сделай сам</a>
 </div>
-
 {% endblock %}

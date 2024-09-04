@@ -44,9 +44,11 @@
                     <ul class="dropdown-menu">
                         {% if not user.is_authenticated %}
                         <li><a class="dropdown-item" href="{% url 'registration' %}">регистрация</a></li>
+                        <li><a class="dropdown-item" href="{% url 'auth' %}">войти</a></li>
                         {% else %}
                         <li><a class="dropdown-item" href="{% url 'profile' %}">профиль</a></li>
                         <li><a class="dropdown-item" href="{% url 'exit' %}">выйти</a></li>
+                        <li><a class="dropdown-item" href="{% url 'del_cart' %}">del_cart</a></li>
                         <li><a class="dropdown-item" href="#">Another action</a></li>
                         <li>
                             <hr class="dropdown-divider">
@@ -62,6 +64,13 @@
         integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM"
         crossorigin="anonymous"></script>
     <div class="container mt-3 sofia-sans-800">
+        {% if messages %}
+        <ul class="messages">
+            {% for message in messages %}
+            <li{% if message.tags %} class="{{ message.tags }}" {% endif %}>{{ message }}</li>
+                {% endfor %}
+        </ul>
+        {% endif %}
         {% block content %}
         {% endblock %}
     </div>

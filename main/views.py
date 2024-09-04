@@ -1,5 +1,6 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from .models import *
+from django.contrib import messages
 # Create your views here.
 
 
@@ -32,3 +33,13 @@ def constructor(request):
         'title': 'конструктор',
     }
     return render(request, 'main/templates/constructor.html', context=context)
+
+def add_to_cart(request,product_id:int):
+    text = Cart.add_cart(user = request.user,product=Products.objects.get(id=product_id))
+    messages.success(request, text)
+    return redirect('/main')
+
+def del_cart(request):
+    request.user.carts.all().delete()
+    messages.success(request, 'Ваша корзина очищена')
+    return redirect('/main')

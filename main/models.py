@@ -104,17 +104,27 @@ class ProductIngredients(models.Model):
 
 class Cart(models.Model):
     user = models.ForeignKey(
-        User, verbose_name='пользователь', on_delete=models.CASCADE, null=False)
+        User, verbose_name='пользователь', on_delete=models.CASCADE, null=False, related_name='carts')
     product = models.ForeignKey(
         Products, verbose_name='товар', on_delete=models.CASCADE, null=False)
-    quantity = models.IntegerField('кол-во в корзине', default=0)
+    quantity = models.IntegerField('кол-во в корзине', default=1)
 
     def __str__(self):
         return f'{self.user} {self.product.name_product} - {self.quantity} шт.'
 
-    # def __init__(self,user,product,quantity):
-    #    pass
-
+    def add_cart(user, product):
+        update_values = {
+            'user':user,
+            'product':product,
+            # 'quantity':1,
+        }
+        obj, created = Cart.objects.update_or_create(user=user,product=product,defaults=update_values)
+        if not created:
+            obj.quantity +=1
+            obj.save()
+        text = f'{product} добавлен, в корзине {obj.quantity} шт.'
+        return text
+    
     class Meta:
         verbose_name = 'Корзина'
         verbose_name_plural = 'Корзины'
