@@ -12,9 +12,9 @@ class Profile(models.Model):
         return f'{MEDIA_ROOT}/profile/{self.prof}/{self.photo.name}'
     prof = models.OneToOneField(
         User, verbose_name='пользователь', on_delete=models.CASCADE, null=False)
-    phone = models.CharField('№ тел.', max_length=15)
-    address = models.CharField('адрес', max_length=120)
-    photo = models.ImageField('фото', upload_to=image_path)
+    phone = models.CharField('№ тел.', max_length=15, null=True)
+    address = models.CharField('адрес', max_length=120, null=True)
+    photo = models.ImageField('фото', upload_to=image_path, null=True)
 
     def compress_logo(self, image):
         im = Image.open(image)

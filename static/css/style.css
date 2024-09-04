@@ -23,6 +23,13 @@ a {
     font-style: normal;
 }
 
+.sofia-sans-800 {
+    font-family: "Sofia Sans", sans-serif;
+    font-optical-sizing: auto;
+    font-weight: 800;
+    font-style: normal;
+  }
+
 .products {
     display: flex;
     box-sizing: border-box;

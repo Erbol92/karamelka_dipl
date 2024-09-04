@@ -1,6 +1,7 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login, logout
 from .forms import *
+from .models import *
 from django.contrib import messages
 from django.http import HttpResponse 
 from django.contrib.sites.shortcuts import get_current_site 
@@ -59,6 +60,21 @@ def activate(request, uidb64, token):
         user.is_active = True 
         user.save()
         login(request, user)
-        return HttpResponse('Спасибо за подтверждение по электронной почте. Теперь вы можете войти в свою учетную запись.') 
+        messages.success(request,'Спасибо за подтверждение по электронной почте. Теперь вы можете войти в свою учетную запись.')
+        return redirect('/profile')
     else: 
         return HttpResponse('Ссылка активации недействительна!') 
+    
+def profile(request):
+    profile_obj, created = Profile.objects.get_or_create(prof=request.user)
+    form = ProfileForm(request.POST or None, request.FILES or None, instance=profile_obj, user=request.user)
+    if form.is_valid():
+        form.save()
+        messages.success(request, 'Профиль успешно обновлён!')
+        return redirect('/user/profile')  
+    context = {
+        'title':'профиль',
+        'form':form,
+        'object':profile_obj,
+    }
+    return render (request,'user_manager/templates/profile.html', context)

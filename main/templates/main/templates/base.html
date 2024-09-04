@@ -10,11 +10,14 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Rubik+Mono+One&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Poiret+One&family=Sofia+Sans:ital,wght@0,1..1000;1,1..1000&display=swap"
+        rel="stylesheet">
     <title>карамелька/{{ title }}</title>
 </head>
 
 <body>
-    <header class="d-flex justify-content-between bg-light ps-3 pe-3">
+    <header class="d-flex justify-content-between bg-light ps-3 pe-3 sofia-sans-800">
         <div>
             <a href="{% url 'home'  %}"><img src="{{ MEDIA_URL }}/logo.png" width="128"></a>
         </div>
@@ -31,8 +34,8 @@
                     <a class="dropdown-toggle btn btn-outline-white fw-bold fs-3" href="#" role="button"
                         data-bs-toggle="dropdown" aria-expanded="false">
                         <div>
-                            {% if user.is_authenticated %}
-                            <img src="{{user.profile.photo.url}}" width="94" height="94" alt="" class="rounded-circle">
+                            {% if user.is_authenticated and user.profile.photo %}
+                            <img src="{{user.profile.photo.url }}" width="94" height="94" alt="" class="rounded-circle">
                             {% else %}
                             <img src="{{MEDIA_URL}}/user_logo.png" width="94" height="94" alt="" class="rounded-circle">
                             {% endif %}
@@ -40,9 +43,9 @@
                     </a>
                     <ul class="dropdown-menu">
                         {% if not user.is_authenticated %}
-                        <li><a class="dropdown-item" href="{% url 'auth' %}">авторизация</a></li>
                         <li><a class="dropdown-item" href="{% url 'registration' %}">регистрация</a></li>
                         {% else %}
+                        <li><a class="dropdown-item" href="{% url 'profile' %}">профиль</a></li>
                         <li><a class="dropdown-item" href="{% url 'exit' %}">выйти</a></li>
                         <li><a class="dropdown-item" href="#">Another action</a></li>
                         <li>
@@ -58,7 +61,7 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"
         integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM"
         crossorigin="anonymous"></script>
-    <div class="container mt-3">
+    <div class="container mt-3 sofia-sans-800">
         {% block content %}
         {% endblock %}
     </div>
