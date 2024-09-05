@@ -1,0 +1,44 @@
+{% extends 'main/templates/base.html' %}
+{% block content %}
+{{object.get_pfc.total_protein}}
+<div class="d-flex">
+    <div>
+        <img src="{{object.image.url}}" width="256">
+    </div>
+    <div class="ms-3 me-3 p-3">
+        <h3 class="text-center">{{object.name_product}}</h3>
+        <p>
+            -{{object.category}}-
+        </p>
+        <p><span class="fw-bolder">Описание: </span>{{object.description}}</p>
+        <div>
+            <p>состав:</p>
+        </div>
+        {% for ingridient in object.get_ingridients %}
+        <p>{{ingridient.ingridient}} - {{ingridient.amount}} {{ingridient.get_unit_display}}</p>
+        {% endfor %}
+        <p>энергитическая ценность</p>
+        <span>белки</span>
+        <div class="progress text-center" role="progressbar" aria-label="Success example"
+            aria-valuenow="{{object.get_pfc.total_protein}}" aria-valuemin="0" aria-valuemax="100">
+            <div class="progress-bar text-bg-warning bg-warning" style="width: {{object.get_pfc.total_protein}}%">
+                {{object.get_pfc.total_protein}}
+            </div>
+        </div>
+        <span>жиры</span>
+        <div class="progress" role="progressbar" aria-label="Warning example"
+            aria-valuenow="{{object.get_pfc.total_fat}}" aria-valuemin="0" aria-valuemax="100">
+            <div class="progress-bar text-bg-warning bg-info" style="width: {{object.get_pfc.total_fat}}%">
+                {{object.get_pfc.total_fat}}
+            </div>
+        </div>
+        <span>углеводы</span>
+        <div class="progress" role="progressbar" aria-label="Warning example"
+            aria-valuenow="{{object.get_pfc.total_carbohydrate}}" aria-valuemin="0" aria-valuemax="100">
+            <div class="progress-bar text-bg-warning bg-danger" style="width: {{object.get_pfc.total_carbohydrate}}%">
+                {{object.get_pfc.total_carbohydrate}}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,10 +1,12 @@
 from django.db import models
+from django.db.models.functions import Cast
 from io import BytesIO
 from PIL import Image
 from django.core.files import File
 from django.core.files.base import ContentFile
 from django.contrib.auth.models import User
 from diplom.settings import MEDIA_ROOT
+from django.shortcuts import reverse
 # Create your models here.
 
 
@@ -58,7 +60,21 @@ class Products(models.Model):
 
     def __str__(self):
         return self.name_product
+    
+    def get_absolute_url(self,*args,**kwargs):
+        return reverse('product_detail', kwargs={'pk': self.id, 'name': self.name_product})
+    
+    def get_ingridients(self):
+        return ProductIngredients.objects.filter(product=self)
 
+    def get_pfc(self):
+        nutricions = self.get_ingridients().aggregate(
+        total_protein=Cast(models.Sum(models.F('protein') * models.F('amount') / 1000), models.IntegerField()),
+        total_fat=Cast(models.Sum(models.F('fat') * models.F('amount') / 1000), models.IntegerField()),
+        total_carbohydrate=Cast(models.Sum(models.F('carbohydrate') * models.F('amount') / 1000), models.IntegerField()),
+    )
+        print(nutricions)
+        return nutricions
     class Meta:
         verbose_name = "Продукт"
         verbose_name_plural = "Продукты"
@@ -89,9 +105,9 @@ class ProductIngredients(models.Model):
         ('tbsn', 'ст.л.'),
     )
     unit = models.CharField('ед. изм.', max_length=10, choices=choice)
-    protein = models.FloatField('белки', default=0)
-    fat = models.FloatField('жиры', default=0)
-    carbohydrate = models.FloatField('углеводы', default=0)
+    protein = models.IntegerField('белки', default=0)
+    fat = models.IntegerField('жиры', default=0)
+    carbohydrate = models.IntegerField('углеводы', default=0)
     calories = models.FloatField('каллории', default=0)
 
     def __str__(self):
@@ -112,18 +128,7 @@ class Cart(models.Model):
     def __str__(self):
         return f'{self.user} {self.product.name_product} - {self.quantity} шт.'
 
-    def add_cart(user, product):
-        update_values = {
-            'user':user,
-            'product':product,
-            # 'quantity':1,
-        }
-        obj, created = Cart.objects.update_or_create(user=user,product=product,defaults=update_values)
-        if not created:
-            obj.quantity +=1
-            obj.save()
-        text = f'{product} добавлен, в корзине {obj.quantity} шт.'
-        return text
+    
     
     class Meta:
         verbose_name = 'Корзина'

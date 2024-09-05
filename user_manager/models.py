@@ -5,8 +5,25 @@ from django.core.files import File
 from django.core.files.base import ContentFile
 from django.contrib.auth.models import User
 from diplom.settings import MEDIA_ROOT
+from main.models import Cart, Products
 # Create your models here.
 
+class UserProxy(User):
+    class Meta:
+        proxy = True
+
+    def add_cart(self, product):
+        update_values = {
+            'user':self,
+            'product':product,
+            # 'quantity':1,
+        }
+        obj, created = Cart.objects.update_or_create(user=self, product=product, defaults=update_values)
+        if not created:
+            obj.quantity +=1
+            obj.save()
+        return f'{product} добавлен, в корзине {obj.quantity} шт.'
+    
 class Profile(models.Model):
     def image_path(self, instance):
         return f'{MEDIA_ROOT}/profile/{self.prof}/{self.photo.name}'

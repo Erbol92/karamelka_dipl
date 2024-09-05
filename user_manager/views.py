@@ -71,7 +71,7 @@ def profile(request):
     if form.is_valid():
         form.save()
         messages.success(request, 'Профиль успешно обновлён!')
-        return redirect('/user/profile')  
+        return redirect('/profile')  
     context = {
         'title':'профиль',
         'form':form,

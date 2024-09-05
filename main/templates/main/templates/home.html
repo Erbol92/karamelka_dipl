@@ -25,19 +25,19 @@
 
 <h1 class="rubik-mono-one-regular mt-2">Хиты продаж <img src="{{ MEDIA_URL }}/fire.png" width="32"></h1>
 <div class="justify-content-around products">
-    {% for i in 0123456|make_list %}
+    {% for object in object_list %}
     <div class="product-tile p-1 mb-1">
         <div class="d-flex product-tile-image">
-            <img src="{{object_list.0.image.url}}">
+            <img src="{{object.image.url}}">
         </div>
         <div class="product-tile-info">
-            <h3>{{object_list.0.name_product}}</h3>
-            <p>{{object_list.0.description|truncatechars:150|linebreaks}}</p>
-            <p><strong>Цена: {{object_list.0.price}}</strong></p>
+            <h3>{{object}}</h3>
+            <p>{{object|truncatechars:150|linebreaks}}</p>
+            <p><strong>Цена: {{object.price}}</strong></p>
         </div>
         <div class="product-tile-actions">
-            <a href="{% url 'add_to_cart' product_id=1 %}" class="add-to-cart">добавить в корзину</a>
-            <a href="#" class="view-details">детальнее</a>
+            <a href="{% url 'add_to_cart' product_id=object.id %}" class="add-to-cart">добавить в корзину</a>
+            <a href="{{object.get_absolute_url}}" class="view-details">детальнее</a>
         </div>
     </div>
     {% endfor %}
