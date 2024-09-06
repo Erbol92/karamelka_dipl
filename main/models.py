@@ -73,7 +73,7 @@ class Products(models.Model):
         total_fat=Cast(models.Sum(models.F('fat') * models.F('amount') / 1000), models.IntegerField()),
         total_carbohydrate=Cast(models.Sum(models.F('carbohydrate') * models.F('amount') / 1000), models.IntegerField()),
     )
-        print(nutricions)
+        nutricions['kcal'] = nutricions['total_protein']*4+nutricions['total_fat']*9+nutricions['total_carbohydrate']*4
         return nutricions
     class Meta:
         verbose_name = "Продукт"
@@ -128,7 +128,8 @@ class Cart(models.Model):
     def __str__(self):
         return f'{self.user} {self.product.name_product} - {self.quantity} шт.'
 
-    
+    def get_pos_sum(self):
+        return self.product.price*self.quantity
     
     class Meta:
         verbose_name = 'Корзина'

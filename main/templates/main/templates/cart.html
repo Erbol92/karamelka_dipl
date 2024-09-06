@@ -1,0 +1,43 @@
+{% extends 'main/templates/base.html' %}
+{% block content %}
+<style>
+    .row .col {
+        border-style: groove;
+        text-align: center;
+    }
+</style>
+<div class="row">
+    <div class="col">наименование</div>
+    <div class="col">цена, руб./шт</div>
+    <div class="col">количество, шт.</div>
+    <div class="col">стоимость, руб.</div>
+</div>
+{% for cart in user.carts.all %}
+<div class="row">
+    <div class="col"><a href="{{cart.product.get_absolute_url}}" onmouseover="displayImg({{cart.id}})"
+            onmouseleave="hideImg({{cart.id}})">{{cart.product.name_product}}</a></div>
+    <div id="{{cart.id}}" style="width: 128px; display: none;" class="position-absolute">
+        <img src="{{cart.product.image.url}}" style="object-fit: contain;" class="rounded-pill">
+    </div>
+
+    <div class="col">{{cart.product.price}}</div>
+    <div class="col">{{cart.quantity}}</div>
+    <div class="col">{{cart.get_pos_sum}}</div>
+</div>
+{% endfor %}
+<p class="text-end"><span class="fw-bold">всего: </span>{{user.sum_cart}} руб.</p>
+<script>
+    function displayImg(id) {
+        const x = event.clientX; // получаем координату X мыши
+        const y = event.clientY; // получаем координату Y мыши
+        img = document.getElementById(id)
+        img.style.left = x + 'px'
+        img.style.top = y + 'px'
+        img.style.display = "block";
+    }
+    function hideImg(id) {
+        img = document.getElementById(id)
+        img.style.display = "none";
+    }
+</script>
+{% endblock %}

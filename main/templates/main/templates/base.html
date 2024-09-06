@@ -48,6 +48,7 @@
                         {% else %}
                         <li><a class="dropdown-item" href="{% url 'profile' %}">профиль</a></li>
                         <li><a class="dropdown-item" href="{% url 'exit' %}">выйти</a></li>
+                        <li><a class="dropdown-item" href="{% url 'cart_view' %}">корзина</a></li>
                         <li><a class="dropdown-item" href="{% url 'del_cart' %}">очистить корзину</a></li>
                         <li><a class="dropdown-item" href="#">Another action</a></li>
                         <li>
@@ -77,5 +78,18 @@
 
 
 </body>
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        // Получаем все сообщения
+        const messages = document.querySelectorAll('.messages li');
+
+        messages.forEach((message, index) => {
+            // Затухаем каждое сообщение через 2 секунды (2000 мс)
+            setTimeout(() => {
+                message.classList.add('fade-out');
+            }, 2000 + index * 1000); // Затухание каждого сообщения через 1 секунду после предыдущего
+        });
+    });
+</script>
 
 </html>

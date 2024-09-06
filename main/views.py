@@ -42,6 +42,13 @@ def constructor(request):
     }
     return render(request, 'main/templates/constructor.html', context=context)
 
+def cart_view(request):
+    context ={
+        'title':'корзины',
+        'user' : UserProxy.objects.get(pk=request.user.pk)
+    }
+    return render(request, 'main/templates/cart.html', context=context)
+
 def add_to_cart(request,product_id:int):
     user = UserProxy.objects.get(id=request.user.id)
     product = Products.objects.get(id=product_id)

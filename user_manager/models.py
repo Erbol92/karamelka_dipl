@@ -24,6 +24,13 @@ class UserProxy(User):
             obj.save()
         return f'{product} добавлен, в корзине {obj.quantity} шт.'
     
+    def sum_cart(self):
+        summary = 0
+        for cart in self.carts.all():
+            summary +=cart.get_pos_sum()
+        return summary
+    
+    
 class Profile(models.Model):
     def image_path(self, instance):
         return f'{MEDIA_ROOT}/profile/{self.prof}/{self.photo.name}'

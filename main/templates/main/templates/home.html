@@ -32,7 +32,7 @@
         </div>
         <div class="product-tile-info">
             <h3>{{object}}</h3>
-            <p>{{object|truncatechars:150|linebreaks}}</p>
+            <p>{{object.description|truncatechars:150|linebreaks}}</p>
             <p><strong>Цена: {{object.price}}</strong></p>
         </div>
         <div class="product-tile-actions">
@@ -41,6 +41,6 @@
         </div>
     </div>
     {% endfor %}
-    <a href="{% url 'constructor' %}">или сделай сам</a>
 </div>
+<a href="{% url 'constructor' %}">или сделай сам</a>
 {% endblock %}
