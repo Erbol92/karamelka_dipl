@@ -13,6 +13,7 @@
     <link
         href="https://fonts.googleapis.com/css2?family=Poiret+One&family=Sofia+Sans:ital,wght@0,1..1000;1,1..1000&display=swap"
         rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <title>КАРАМЕЛЬКА/{{ title|upper }}</title>
 </head>
 
@@ -49,7 +50,6 @@
                         <li><a class="dropdown-item" href="{% url 'profile' %}">профиль</a></li>
                         <li><a class="dropdown-item" href="{% url 'exit' %}">выйти</a></li>
                         <li><a class="dropdown-item" href="{% url 'cart_view' %}">корзина</a></li>
-                        <li><a class="dropdown-item" href="{% url 'del_cart' %}">очистить корзину</a></li>
                         <li><a class="dropdown-item" href="#">Another action</a></li>
                         <li>
                             <hr class="dropdown-divider">

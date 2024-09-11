@@ -131,6 +131,25 @@ class Cart(models.Model):
     def get_pos_sum(self):
         return self.product.price*self.quantity
     
+    def remove_from_cart(self):
+        self.quantity -=1
+        self.save()
+        return f'{self.product} удален из корзины'
+    
+    def add_quant_to_cart(self):
+        self.quantity +=1
+        self.save()
+        return f'{self.product} добавлен в корзину'
+    
     class Meta:
         verbose_name = 'Корзина'
         verbose_name_plural = 'Корзины'
+
+class Bisquit(models.Model):
+    title = models.CharField('Название', max_length=30)
+    descrition = models.TextField('Описание')
+    def __str__(self):
+        return f'{self.title}'
+    class Meta:
+        verbose_name = 'Бисквит'
+        verbose_name_plural = 'Бисквиты'

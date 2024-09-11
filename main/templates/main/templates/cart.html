@@ -6,11 +6,13 @@
         text-align: center;
     }
 </style>
+{% if user.carts.all %}
 <div class="row">
     <div class="col">наименование</div>
     <div class="col">цена, руб./шт</div>
     <div class="col">количество, шт.</div>
     <div class="col">стоимость, руб.</div>
+    <div class="col">добавить/удалить</div>
 </div>
 {% for cart in user.carts.all %}
 <div class="row">
@@ -23,9 +25,21 @@
     <div class="col">{{cart.product.price}}</div>
     <div class="col">{{cart.quantity}}</div>
     <div class="col">{{cart.get_pos_sum}}</div>
+    <div class="col">
+        <a href="{% url 'add_quant_cart' cart.id %}"><i class="bi bi-patch-plus"></i></a>
+        <span> </span>
+        <a href="{% url 'del_from_cart' cart.id %}"><i class="bi bi-patch-minus"></i></a>
+    </div>
 </div>
 {% endfor %}
 <p class="text-end"><span class="fw-bold">всего: </span>{{user.sum_cart}} руб.</p>
+<div class="d-flex justify-content-center">
+    <a href="" class="btn btn-outline-primary me-3">заказать</a>
+    <a href="{% url 'del_cart' %}" class="btn btn-outline-success ms-3">очистить корзину</a>
+</div>
+{% else %}
+<h3>корзина пуста</h3>
+{% endif %}
 <script>
     function displayImg(id) {
         const x = event.clientX; // получаем координату X мыши

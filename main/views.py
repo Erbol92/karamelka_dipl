@@ -40,7 +40,7 @@ def constructor(request):
     context = {
         'title': 'конструктор',
     }
-    return render(request, 'main/templates/constructor.html', context=context)
+    return render(request, 'main/templates/constructor_2.html', context=context)
 
 def cart_view(request):
     context ={
@@ -53,10 +53,17 @@ def add_to_cart(request,product_id:int):
     user = UserProxy.objects.get(id=request.user.id)
     product = Products.objects.get(id=product_id)
     messages.success(request, user.add_cart(product=product))
-    return redirect('/main')
+    return redirect(request.META.get('HTTP_REFERER'))
 
 def del_cart(request):
     request.user.carts.all().delete()
     messages.success(request, 'Ваша корзина очищена')
     return redirect('/main')
 
+def del_from_cart(request,cart_id:int):
+    messages.success(request, Cart.objects.get(id=cart_id).remove_from_cart())
+    return redirect('/main/cart_view/')
+
+def add_quant_cart(request,cart_id:int):
+    messages.success(request, Cart.objects.get(id=cart_id).add_quant_to_cart())
+    return redirect('/main/cart_view/')
