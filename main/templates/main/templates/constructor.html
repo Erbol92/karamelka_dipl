@@ -4,9 +4,8 @@
 <script type="importmap">
     {
         "imports": {
-            "three": "https://cdn.jsdelivr.net/npm/three@0.167.1/build/three.module.js"
-
-            
+            "three": "https://cdn.jsdelivr.net/npm/three@0.167.1/build/three.module.js",
+            "FBXLoader": "https://cdn.jsdelivr.net/npm/three@0.167.1/examples/jsm/loaders/FBXLoader.js",
         }
     }
     </script>
@@ -14,6 +13,7 @@
     import * as THREE from 'three';
     import { DragControls } from '{% static "js/DragControls.js" %}';
     import { OrbitControls } from '{% static "js/OrbitControls.js" %}';
+    import { FBXLoader } from 'FBXLoader';
 
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);

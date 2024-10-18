@@ -2,6 +2,7 @@ from django.shortcuts import render, redirect
 from .models import *
 from user_manager.models import UserProxy
 from django.contrib import messages
+from django.http import JsonResponse
 # Create your views here.
 
 
@@ -37,11 +38,25 @@ def main_page_objects(request):
 
 
 def constructor(request):
+    bisquits = Bisquit.objects.all()
+    fillings = Filling.objects.all()
+    data = request.GET or None
+    print(data)
     context = {
+        'bisquits':bisquits,
+        'fillings':fillings,
         'title': 'конструктор',
     }
     return render(request, 'main/templates/constructor_2.html', context=context)
 
+def get_bisquit_description(request, bisquit_id):
+    try:
+        bisquit = Bisquit.objects.get(pk=bisquit_id)
+        print(bisquit)
+        return JsonResponse({'description': bisquit.descrition})
+    except Bisquit.DoesNotExist:
+        return JsonResponse({'description': ''})
+    
 def cart_view(request):
     context ={
         'title':'корзины',

@@ -1,0 +1,190 @@
+{% extends 'main/templates/base.html' %}
+{% load static %}
+{% load crispy_forms_tags %}
+{% block content %}
+<style>
+    .step {
+        display: none;
+        /* Скрываем все шаги по умолчанию */
+    }
+
+    .step.active {
+        display: block;
+        /* Показываем только активный шаг */
+    }
+</style>
+<h2>Введите количество слоев:</h2>
+<input type="number" id="stepCount" min="1" required>
+<button id="createSteps" class="btn btn-sm btn-success">Создать слои</button>
+
+<form id="multiStepForm" style="margin-top: 20px;">
+    <div id="stepsContainer"></div>
+    <button type="button" id="prevBtn" style="display:none;" class="btn btn-sm btn-primary">Назад</button>
+    <button type="button" id="nextBtn" style="display:none;" class="btn btn-sm btn-primary">Далее</button>
+    <button type="submit" id="submitBtn" style="display:none;" class="btn btn-sm btn-primary">Отправить</button>
+</form>
+
+<script>
+    const stepsContainer = document.getElementById('stepsContainer');
+    let currentStep = 0;
+    let totalSteps = 0;
+
+    document.getElementById('createSteps').addEventListener('click', () => {
+        totalSteps = parseInt(document.getElementById('stepCount').value) + 2;
+        if (isNaN(totalSteps) || totalSteps < 1 || totalSteps - 2 > 5) {
+            alert('Пожалуйста, введите корректное количество слоев. От 1 до 5');
+            return;
+        }
+
+        // Очищаем контейнер шагов
+        stepsContainer.innerHTML = '';
+        currentStep = 0;
+
+        // Создание шагов динамически
+        for (let i = 1; i <= totalSteps; i++) {
+            const stepDiv = document.createElement('div');
+            stepDiv.classList.add('step');
+            console.log(i)
+            if (i === 1) {
+                stepDiv.classList.add('active'); // Первый шаг активен
+                stepDiv.innerHTML = `
+                    <h2>Шаг ${i}</h2>
+                    <div class="d-grid mt-2 mb-2 justify-content-between m-auto">
+                    <label class="form-label">количество гостей: <span id="value_range"></span>
+                        <input type="range" class="form-range" min="1" max="20" step="1" id="guest_range" onchange="showValue()" name="select_guest">
+                    </label>
+                    </div>
+                    
+                `;
+            }
+            else if ((i > 1) & (i < totalSteps))
+                stepDiv.innerHTML = `
+                    <h2>Шаг ${i}</h2>
+                    <label for="input${i}">Введите данные для слоя ${i}:</label>
+                    <label>форма слоя
+                        <select name="select_form_${i}" onchange="showInputFields(${i})" id="shapeSelect_${i}">
+                            <option value="square">квадрат</option>
+                            <option value="circle">круг</option>
+                            <option value="rectangle">прямоугольник</option>
+                        </select>
+                    </label>
+                    <div id="inputFields_${i}" style="display: none;" class="mt-3 mb-3">
+                        <div id="squareFields_${i}" style="display: none;">
+                            <label for="squareSide_${i}">Сторона квадрата:</label>
+                            <input type="number" id="squareSide_${i}" name="squareSide_${i}" placeholder="Введите сторону">
+                        </div>
+                        <div id="circleFields_${i}" style="display: none;">
+                            <label for="circleRadius_${i}">Радиус круга:</label>
+                            <input type="number" id="circleRadius_${i}" name="circleRadius_${i}" placeholder="Введите радиус">
+                        </div>
+                        <div id="rectangleFields_${i}" style="display: none;">
+                            <label for="rectangleWidth_${i}">Ширина прямоугольника:</label>
+                            <input type="number" id="rectangleWidth" name="rectangleWidth_${i}" placeholder="Введите ширину">
+                            <label for="rectangleHeight_${i}">Высота прямоугольника:</label>
+                            <input type="number" id="rectangleHeight_${i}" name="rectangleHeight_${i}" placeholder="Введите высоту">
+                        </div>
+                    </div>
+                    
+                    <div class="d-flex mt-3 mb-2 justify-content-between m-auto w-75">
+                    {% for bisquit in bisquits %}
+                    <button type="button" class="btn btn-outline-dark" title="{{bisquit.descrition}}" onclick="selectBisquit({{bisquit.id}},${i})">{{bisquit.title}}</button>
+                    {% endfor %}
+                    </div>
+                    <input type="hidden" name="selected_bisquit_${i}" id="selected_bisquit_${i}">
+                `;
+            else
+                stepDiv.innerHTML = `
+                    <h2>Шаг ${i}</h2>
+                    <label for="input${i}">выберите начинку:</label>
+                    <div class="d-flex mt-2 mb-2 justify-content-between m-auto w-75">
+                    {% for filling in fillings %}
+                    <button type="button" class="btn btn-outline-dark" title="{{filling.descrition}}" onclick="selectFilling({{filling.id}},${i})">{{filling.title}}</button>
+                    {% endfor %}
+                    </div>
+                    <input type="hidden" name="selected_filling_${i}" id="selected_filling_${i}">
+                `;
+            stepsContainer.appendChild(stepDiv);
+        }
+
+        showStep(currentStep); // Показать первый шаг
+        document.getElementById('nextBtn').style.display = 'inline'; // Показать кнопку "Далее"
+    });
+
+    function showStep(step) {
+        const steps = document.querySelectorAll('.step');
+        steps.forEach((s, index) => {
+            s.classList.toggle('active', index === step);
+        });
+
+        // Управление видимостью кнопок
+        document.getElementById('prevBtn').style.display = step === 0 ? 'none' : 'inline';
+        document.getElementById('nextBtn').style.display = step === totalSteps - 1 ? 'none' : 'inline';
+        document.getElementById('submitBtn').style.display = step === totalSteps - 1 ? 'inline' : 'none';
+    }
+
+    document.getElementById('nextBtn').addEventListener('click', () => {
+        if (currentStep < totalSteps - 1) {
+            currentStep++;
+            showStep(currentStep);
+        }
+    });
+
+    document.getElementById('prevBtn').addEventListener('click', () => {
+        if (currentStep > 0) {
+            currentStep--;
+            showStep(currentStep);
+        }
+    });
+</script>
+
+<script>
+    function showValue() {
+        var slider = document.getElementById("guest_range");
+        var output = document.getElementById("value_range");
+        output.innerHTML = slider.value; // Display the default slider value
+
+        // Update the current slider value (each time you drag the slider handle)
+        slider.change = function () {
+            output.innerHTML = this.value;
+        }
+    }
+
+    function selectBisquit(id, step) {
+        // Устанавливаем значение выбранного бисквита в скрытое поле
+        document.getElementById(`selected_bisquit_${step}`).value = id;
+    }
+    function selectFilling(id, step) {
+        // Устанавливаем значение выбранной начинки в скрытое поле
+        document.getElementById(`selected_filling_${step}`).value = id;
+    }
+
+</script>
+<script>
+    function showInputFields(id) {
+        const shapeSelect = document.getElementById(`shapeSelect_${id}`);
+        const inputFields = document.getElementById(`inputFields_${id}`);
+        const squareFields = document.getElementById(`squareFields_${id}`);
+        const circleFields = document.getElementById(`circleFields_${id}`);
+        const rectangleFields = document.getElementById(`rectangleFields_${id}`);
+
+        // Скрываем все поля ввода
+        inputFields.style.display = 'none';
+        squareFields.style.display = 'none';
+        circleFields.style.display = 'none';
+        rectangleFields.style.display = 'none';
+
+        // Показываем соответствующие поля ввода в зависимости от выбранной формы
+        if (shapeSelect.value) {
+            inputFields.style.display = 'block'; // Показываем контейнер с полями ввода
+            if (shapeSelect.value === 'square') {
+                squareFields.style.display = 'block';
+            } else if (shapeSelect.value === 'circle') {
+                circleFields.style.display = 'block';
+            } else if (shapeSelect.value === 'rectangle') {
+                rectangleFields.style.display = 'block';
+            }
+        }
+    }
+</script>
+
+{% endblock %}

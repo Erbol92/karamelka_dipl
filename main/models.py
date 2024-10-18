@@ -153,3 +153,12 @@ class Bisquit(models.Model):
     class Meta:
         verbose_name = 'Бисквит'
         verbose_name_plural = 'Бисквиты'
+
+class Filling(models.Model):
+    title = models.CharField('Название', max_length=30)
+    descrition = models.TextField('Описание')
+    def __str__(self):
+        return f'{self.title}'
+    class Meta:
+        verbose_name = 'Начинка'
+        verbose_name_plural = 'Начинки'

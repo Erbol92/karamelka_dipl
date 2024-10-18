@@ -28,3 +28,5 @@ admin.site.register(Ingridients)
 admin.site.register(CategoryProduct, CategoryProductAdmin)
 admin.site.register(Cart)
 admin.site.register(Bisquit)
+admin.site.register(Filling)
+
