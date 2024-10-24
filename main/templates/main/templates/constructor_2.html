@@ -14,6 +14,7 @@
     }
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="{% static 'js/OrbitControls.js' %}"></script>
 
 <h2>Введите количество слоев:</h2>
 <input type="number" id="stepCount" min="1" required>
@@ -26,6 +27,7 @@
     <button type="button" id="submitBtn" style="display:none;" class="btn btn-sm btn-primary">Отправить</button>
     <button type="button" id="buildCacke" style="display:none;" class="btn btn-sm btn-primary">buildCake</button>
 </form>
+<div id="container"></div>
 
 <script>
     const stepsContainer = document.getElementById('stepsContainer');
@@ -65,25 +67,26 @@
                     <label for="input${i}">Введите данные для слоя ${i}:</label>
                     <label>форма слоя
                         <select name="select_form_${i}" onchange="showInputFields(${i})" id="shapeSelect_${i}">
+                            <option>--------</option>
                             <option value="square" id="square_${i}">квадрат</option>
                             <option value="circle" id="circle_${i}">круг</option>
                             <option value="rectangle" id="rectangle_${i}">прямоугольник</option>
                         </select>
                     </label>
-                    <div id="inputFields_${i}" style="display: none;" class="mt-3 mb-3">
+                    <div id="inputFields_${i}" class="div_input" style="display: none;" class="mt-3 mb-3">
                         <div id="squareFields_${i}" style="display: none;">
                             <label for="squareSide_${i}">Сторона квадрата:</label>
-                            <input type="number" id="squareSide_${i}" name="squareSide_${i}" placeholder="Введите сторону" value=0>
+                            <input type="number" id="squareSide_${i}" name="squareSide_${i}" placeholder="Введите сторону" value='20' min='20' max='70'>
                         </div>
                         <div id="circleFields_${i}" style="display: none;">
                             <label for="circleRadius_${i}">Радиус круга:</label>
-                            <input type="number" id="circleRadius_${i}" name="circleRadius_${i}" placeholder="Введите радиус" value=0>
+                            <input type="number" id="circleRadius_${i}" name="circleRadius_${i}" placeholder="Введите радиус" value='10' min='20' max='70'>
                         </div>
                         <div id="rectangleFields_${i}" style="display: none;">
                             <label for="rectangleWidth_${i}">Ширина прямоугольника:</label>
-                            <input type="number" id="rectangleWidth_${i}" name="rectangleWidth_${i}" placeholder="Введите ширину" value=0>
+                            <input type="number" id="rectangleWidth_${i}" name="rectangleWidth_${i}" placeholder="Введите ширину" value='20' min='20' max='70'>
                             <label for="rectangleHeight_${i}">Длина прямоугольника:</label>
-                            <input type="number" id="rectangleHeight_${i}" name="rectangleHeight_${i}" placeholder="Введите длину" value=0>
+                            <input type="number" id="rectangleHeight_${i}" name="rectangleHeight_${i}" placeholder="Введите длину" value='20' min='20' max='70'>
                         </div>
                     </div>
                     
@@ -92,7 +95,7 @@
                     <button type="button" class="btn btn-outline-dark" title="{{bisquit.descrition}}" onclick="selectBisquit({{bisquit.id}},${i})">{{bisquit.title}}</button>
                     {% endfor %}
                     </div>
-                    <input type="hidden" name="selected_bisquit_${i}" id="selected_bisquit_${i}">
+                    <input type="hidden" name="selected_bisquit_${i}" class="selected_bisquit" id="selected_bisquit_${i}">
                 `;
             else
                 stepDiv.innerHTML = `
@@ -108,9 +111,28 @@
                 `;
             stepsContainer.appendChild(stepDiv);
         }
+        const inputs = document.querySelectorAll('.div_input input');
+        const bisquits = document.querySelectorAll('.selected_bisquit');
+
+        function validateInput(input, errorElement) {
+            const value = parseInt(input.value, 10);
+            console.log(value)
+            if (value < 20 || value > 70) {
+                alert('Пожалуйста, введите число от 20 до 70.');
+                input.value = 20;
+
+            }
+        };
+        inputs.forEach(input => {
+            const errorElement = document.getElementById('error' + input.id.slice(-1));
+
+            input.addEventListener('change', function () {
+                validateInput(input, errorElement);
+            });
+        });
 
         showStep(currentStep); // Показать первый шаг
-        document.getElementById('nextBtn').style.display = 'inline'; // Показать кнопку "Далее"
+        // document.getElementById('nextBtn').style.display = 'inline'; // Показать кнопку "Далее"
     });
 
     function showStep(step) {
@@ -120,8 +142,12 @@
         });
 
         // Управление видимостью кнопок
+        console.log(step)
         document.getElementById('prevBtn').style.display = step === 0 ? 'none' : 'inline';
-        document.getElementById('nextBtn').style.display = step === totalSteps - 1 ? 'none' : 'inline';
+        document.getElementById('nextBtn').style.display = 'none';
+        if (step == 0 || step == totalSteps)
+            document.getElementById('nextBtn').style.display = 'inline';
+        // document.getElementById('nextBtn').style.display = step === totalSteps - 1 ? 'none' : 'inline';
         document.getElementById('submitBtn').style.display = step === totalSteps - 1 ? 'inline' : 'none';
         document.getElementById('buildCacke').style.display = step === totalSteps - 1 ? 'inline' : 'none';
     }
@@ -156,6 +182,8 @@
     function selectBisquit(id, step) {
         // Устанавливаем значение выбранного бисквита в скрытое поле
         document.getElementById(`selected_bisquit_${step}`).value = id;
+        document.getElementById('nextBtn').style.display = 'inline';
+
     }
     function selectFilling(id, step) {
         // Устанавливаем значение выбранной начинки в скрытое поле
@@ -190,7 +218,7 @@
     }
 </script>
 <script>
-    let scene, camera, renderer;
+    let scene, camera, renderer, controls;
 
     function init3D() {
         // Создаем сцену
@@ -198,15 +226,31 @@
         for (var i = 0; i < document.getElementsByTagName('canvas').length; i++) {
             document.getElementsByTagName('canvas')[i].remove();
         }
-        scene = new THREE.Scene();
-        camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-        renderer = new THREE.WebGLRenderer();
-        renderer.setSize(window.innerWidth, window.innerHeight);
-        document.body.appendChild(renderer.domElement);
 
+        scene = new THREE.Scene();
+        scene.background = 0x000000
+        camera = new THREE.PerspectiveCamera(75, 800 / 600, 0.1, 1000);
+        renderer = new THREE.WebGLRenderer({ alpha: true });
+        myDiv = document.getElementById('container');
+        myDiv.style.width = window.innerWidth / 3;
+        myDiv.style.height = window.innerHeight / 3;
+        renderer.setSize(800, 600);
+        myDiv.appendChild(renderer.domElement);
+        controls = new THREE.OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
+        controls.dampingFactor = 0.25;
+        controls.screenSpacePanning = false;
+        controls.enableZoom = true;
         // Устанавливаем камеру
         camera.position.set(25, 25, 25);
         camera.lookAt(0, 0, 0);
+
+        myDiv.addEventListener('mouseenter', () => {
+            controls.enabled = true; // Включаем OrbitControls
+        });
+        myDiv.addEventListener('mouseleave', () => {
+            controls.enabled = false; // Включаем OrbitControls
+        });
 
         // Добавляем освещение
         const light = new THREE.AmbientLight(0xffffff); // мягкий белый свет
@@ -217,6 +261,9 @@
 
     function animate() {
         requestAnimationFrame(animate);
+        // Обновление controls
+        controls.update(); // Обновление состояния управления
+
         renderer.render(scene, camera);
     }
 
@@ -241,7 +288,7 @@
         // cakeLayer.scale.set(0.5, 0.5, 0.5);
 
         const cakeLayer = new THREE.Mesh(geometry, material);
-        cakeLayer.position.y = totalHeight + dimensions.height / 2 + 0.1; // Расположение слоев+
+        cakeLayer.position.y = totalHeight + dimensions.height / 2 + 0.1 - 20; // Расположение слоев+
         console.log(totalHeight, dimensions.height, dimensions)
         scene.add(cakeLayer);
         // Создание границ
@@ -286,4 +333,6 @@
     });
 
 </script>
+
+
 {% endblock %}
