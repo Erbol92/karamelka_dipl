@@ -20,17 +20,19 @@
 <input type="number" id="stepCount" min="1" required>
 <button id="createSteps" class="btn btn-sm btn-success">Создать слои</button>
 
-<form id="multiStepForm" style="margin-top: 20px;">
+<div id="multiStepForm" style="margin-top: 20px;">
     <div id="stepsContainer"></div>
     <button type="button" id="prevBtn" style="display:none;" class="btn btn-sm btn-primary">Назад</button>
     <button type="button" id="nextBtn" style="display:none;" class="btn btn-sm btn-primary">Далее</button>
-    <button type="button" id="submitBtn" style="display:none;" class="btn btn-sm btn-primary">Отправить</button>
+    <button type="submit" id="submitBtn" style="display:none;" class="btn btn-sm btn-primary">Отправить</button>
     <button type="button" id="buildCacke" style="display:none;" class="btn btn-sm btn-primary">buildCake</button>
-</form>
+</div>
 <div id="container"></div>
 
 <script>
     const stepsContainer = document.getElementById('stepsContainer');
+    const jsonString = '{}';
+    const jsonObject = JSON.parse(jsonString);
     let currentStep = 0;
     let totalSteps = 0;
 
@@ -47,6 +49,7 @@
 
         // Создание шагов динамически
         for (let i = 1; i <= totalSteps; i++) {
+            jsonObject[i] = {}
             const stepDiv = document.createElement('div');
             stepDiv.classList.add('step');
             if (i === 1) {
@@ -64,7 +67,7 @@
             else if ((i > 1) & (i < totalSteps))
                 stepDiv.innerHTML = `
                     <h2>Шаг ${i}</h2>
-                    <label for="input${i}">Введите данные для слоя ${i}:</label>
+                    <label for="input${i}">Введите данные для слоя ${i - 1}:</label>
                     <label>форма слоя
                         <select name="select_form_${i}" onchange="showInputFields(${i})" id="shapeSelect_${i}">
                             <option>--------</option>
@@ -76,17 +79,17 @@
                     <div id="inputFields_${i}" class="div_input" style="display: none;" class="mt-3 mb-3">
                         <div id="squareFields_${i}" style="display: none;">
                             <label for="squareSide_${i}">Сторона квадрата:</label>
-                            <input type="number" id="squareSide_${i}" name="squareSide_${i}" placeholder="Введите сторону" value='20' min='20' max='70'>
+                            <input type="number" id="squareSide_${i}" name="squareSide_${i}" placeholder="Введите сторону" min='20' max='70'>
                         </div>
                         <div id="circleFields_${i}" style="display: none;">
                             <label for="circleRadius_${i}">Радиус круга:</label>
-                            <input type="number" id="circleRadius_${i}" name="circleRadius_${i}" placeholder="Введите радиус" value='10' min='20' max='70'>
+                            <input type="number" id="circleRadius_${i}" name="circleRadius_${i}" placeholder="Введите радиус" min='10' max='70'>
                         </div>
                         <div id="rectangleFields_${i}" style="display: none;">
                             <label for="rectangleWidth_${i}">Ширина прямоугольника:</label>
-                            <input type="number" id="rectangleWidth_${i}" name="rectangleWidth_${i}" placeholder="Введите ширину" value='20' min='20' max='70'>
+                            <input type="number" id="rectangleWidth_${i}" name="rectangleWidth_${i}" placeholder="Введите ширину" min='20' max='70'>
                             <label for="rectangleHeight_${i}">Длина прямоугольника:</label>
-                            <input type="number" id="rectangleHeight_${i}" name="rectangleHeight_${i}" placeholder="Введите длину" value='20' min='20' max='70'>
+                            <input type="number" id="rectangleHeight_${i}" name="rectangleHeight_${i}" placeholder="Введите длину" min='20' max='70'>
                         </div>
                     </div>
                     
@@ -116,9 +119,8 @@
 
         function validateInput(input, errorElement) {
             const value = parseInt(input.value, 10);
-            console.log(value)
-            if (value < 20 || value > 70) {
-                alert('Пожалуйста, введите число от 20 до 70.');
+            if (value < input.min || value > input.max) {
+                alert(`Пожалуйста, введите число от ${input.min} до ${input.max}.`);
                 input.value = 20;
 
             }
@@ -142,7 +144,6 @@
         });
 
         // Управление видимостью кнопок
-        console.log(step)
         document.getElementById('prevBtn').style.display = step === 0 ? 'none' : 'inline';
         document.getElementById('nextBtn').style.display = 'none';
         if (step == 0 || step == totalSteps)
@@ -172,10 +173,11 @@
         var slider = document.getElementById("guest_range");
         var output = document.getElementById("value_range");
         output.innerHTML = slider.value; // Display the default slider value
-
+        jsonObject[1]['guest'] = slider.value
         // Update the current slider value (each time you drag the slider handle)
         slider.change = function () {
             output.innerHTML = this.value;
+
         }
     }
 
@@ -183,11 +185,13 @@
         // Устанавливаем значение выбранного бисквита в скрытое поле
         document.getElementById(`selected_bisquit_${step}`).value = id;
         document.getElementById('nextBtn').style.display = 'inline';
+        jsonObject[step]['bisquit'] = id
 
     }
     function selectFilling(id, step) {
         // Устанавливаем значение выбранной начинки в скрытое поле
         document.getElementById(`selected_filling_${step}`).value = id;
+        jsonObject[step]['filling'] = id
     }
 
 </script>
@@ -206,6 +210,7 @@
         rectangleFields.style.display = 'none';
         // Показываем соответствующие поля ввода в зависимости от выбранной формы
         if (shapeSelect.value) {
+            jsonObject[id] = { "form": shapeSelect.value }
             inputFields.style.display = 'block'; // Показываем контейнер с полями ввода
             if (shapeSelect.value === 'square') {
                 squareFields.style.display = 'block';
@@ -236,13 +241,22 @@
         myDiv.style.height = window.innerHeight / 3;
         renderer.setSize(800, 600);
         myDiv.appendChild(renderer.domElement);
+
+        // Создаем плоскость
+        const planeGeometry = new THREE.PlaneGeometry(800, 600); // Ширина и высота плоскости
+        const planeMaterial = new THREE.MeshBasicMaterial({ color: 0xFAEBD7, side: THREE.DoubleSide });
+        const plane = new THREE.Mesh(planeGeometry, planeMaterial);
+        plane.rotation.x = Math.PI / 2; // Поворачиваем плоскость, чтобы она была горизонтальной
+        plane.position.y = -80
+        scene.add(plane);
+
         controls = new THREE.OrbitControls(camera, renderer.domElement);
         controls.enableDamping = true;
         controls.dampingFactor = 0.25;
         controls.screenSpacePanning = false;
         controls.enableZoom = true;
         // Устанавливаем камеру
-        camera.position.set(25, 25, 25);
+        camera.position.set(25, 25, 125);
         camera.lookAt(0, 0, 0);
 
         myDiv.addEventListener('mouseenter', () => {
@@ -269,7 +283,7 @@
 
     function createCakeLayer(shape, dimensions, totalHeight) {
         let geometry;
-        let material = new THREE.MeshStandardMaterial({ color: 0x00ff00, flatShading: true }); // Цвет торта
+        let material = new THREE.MeshNormalMaterial({ color: 0x808080, flatShading: true }); // Цвет торта
 
         switch (shape) {
             case 'circle':
@@ -288,14 +302,9 @@
         // cakeLayer.scale.set(0.5, 0.5, 0.5);
 
         const cakeLayer = new THREE.Mesh(geometry, material);
-        cakeLayer.position.y = totalHeight + dimensions.height / 2 + 0.1 - 20; // Расположение слоев+
-        console.log(totalHeight, dimensions.height, dimensions)
+        cakeLayer.position.y = totalHeight + dimensions.height / 2 + 0.1 - 80; // Расположение слоев+
         scene.add(cakeLayer);
-        // Создание границ
-        const edges = new THREE.EdgesGeometry(geometry);
-        const edgeLines = new THREE.LineSegments(edges, new THREE.LineBasicMaterial({ color: 0xff0000, linewidth: 3 })); // Цвет границ
-        edgeLines.position.y = cakeLayer.position.y; // Установка позиции границ
-        scene.add(edgeLines);
+
     }
 
 
@@ -314,13 +323,24 @@
             if (selectedShape === 'circle') {
                 dimensions.radius = parseFloat(document.getElementById(`circleRadius_${i}`).value);
                 dimensions.height = dimensions.radius / 3; // Высота слоя
+                document.getElementById(`rectangleWidth_${i}`).disabled = true;
+                document.getElementById(`rectangleHeight_${i}`).disabled = true;
+                document.getElementById(`squareSide_${i}`).disabled = true;
+                jsonObject[i].size = { 'r': dimensions.radius, 'h': dimensions.height }
             } else if (selectedShape === 'square') {
                 dimensions.size = parseFloat(document.getElementById(`squareSide_${i}`).value);
                 dimensions.height = dimensions.size; // Высота слоя
+                document.getElementById(`rectangleWidth_${i}`).disabled = true;
+                document.getElementById(`rectangleHeight_${i}`).disabled = true;
+                document.getElementById(`circleRadius_${i}`).disabled = true;
+                jsonObject[i].size = { 'a': dimensions.size }
             } else if (selectedShape === 'rectangle') {
                 dimensions.width = parseFloat(document.getElementById(`rectangleWidth_${i}`).value);
                 dimensions.depth = parseFloat(document.getElementById(`rectangleHeight_${i}`).value);// Высота слоя
                 dimensions.height = dimensions.depth * 1 / 3;
+                document.getElementById(`circleRadius_${i}`).disabled = true;
+                document.getElementById(`squareSide_${i}`).disabled = true;
+                jsonObject[i].size = { 'a': dimensions.width, 'b': dimensions.depth, 'c': dimensions.height }
             }
 
             // Установка позиции слоя на основе общей высоты
@@ -330,6 +350,7 @@
             totalHeight += dimensions.height; // Увеличиваем общую высоту на высоту текущего слоя
         }
 
+        console.log(JSON.stringify(jsonObject))
     });
 
 </script>

@@ -40,7 +40,7 @@ def main_page_objects(request):
 def constructor(request):
     bisquits = Bisquit.objects.all()
     fillings = Filling.objects.all()
-    data = request.GET or None
+    data = request.POST or None
     print(data)
     context = {
         'bisquits':bisquits,

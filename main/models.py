@@ -148,6 +148,9 @@ class Cart(models.Model):
 class Bisquit(models.Model):
     title = models.CharField('Название', max_length=30)
     descrition = models.TextField('Описание')
+    calorie = models.IntegerField('Ккал/100гр', default=0)
+    weight = models.IntegerField('Вес кг/м3', default=0)
+
     def __str__(self):
         return f'{self.title}'
     class Meta:
@@ -157,6 +160,9 @@ class Bisquit(models.Model):
 class Filling(models.Model):
     title = models.CharField('Название', max_length=30)
     descrition = models.TextField('Описание')
+    calorie = models.IntegerField('Ккал/100гр', default=0)
+    weight = models.IntegerField('Вес кг/м3', default=0)
+
     def __str__(self):
         return f'{self.title}'
     class Meta:
