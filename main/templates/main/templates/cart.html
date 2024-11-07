@@ -7,39 +7,91 @@
     }
 </style>
 {% if user.carts.all %}
-<div class="row">
-    <div class="col">наименование</div>
-    <div class="col">цена, руб./шт</div>
-    <div class="col">количество, шт.</div>
-    <div class="col">стоимость, руб.</div>
-    <div class="col">добавить/удалить</div>
-</div>
-{% for cart in user.carts.all %}
-<div class="row">
-    <div class="col"><a href="{{cart.product.get_absolute_url}}" onmouseover="displayImg({{cart.id}})"
-            onmouseleave="hideImg({{cart.id}})">{{cart.product.name_product}}</a></div>
-    <div id="{{cart.id}}" style="width: 128px; display: none;" class="position-absolute">
-        <img src="{{cart.product.image.url}}" style="object-fit: contain;" class="rounded-pill">
+<form action="" method="post">
+    {% csrf_token %}
+    <div class="row">
+        <div class="col">наименование</div>
+        <div class="col">цена, руб./шт</div>
+        <div class="col">количество, шт.</div>
+        <div class="col">стоимость, руб.</div>
+        <div class="col">добавить/удалить</div>
     </div>
+    {% for cart in user.carts.all %}
+    <div class="row">
 
-    <div class="col">{{cart.product.price}}</div>
-    <div class="col">{{cart.quantity}}</div>
-    <div class="col">{{cart.get_pos_sum}}</div>
-    <div class="col">
-        <a href="{% url 'add_quant_cart' cart.id %}"><i class="bi bi-patch-plus"></i></a>
-        <span> </span>
-        <a href="{% url 'del_from_cart' cart.id %}"><i class="bi bi-patch-minus"></i></a>
+        <div class="col">
+            <input type="checkbox" name="select_cart" value="{{cart.id}}">
+            <a href="{{cart.product.get_absolute_url}}" onmouseover="displayImg({{cart.id}})"
+                onmouseleave="hideImg({{cart.id}})">{{cart.product.name_product}}</a>
+        </div>
+        <div id="{{cart.id}}" style="width: 128px; display: none;" class="position-absolute">
+            <img src="{{cart.product.image.url}}" style="object-fit: contain;" class="rounded-pill">
+        </div>
+
+        <div class="col">{{cart.product.price|floatformat:"2g"}}</div>
+        <div class="col">{{cart.quantity}}</div>
+        <div class="col">{{cart.get_pos_sum|floatformat:"2g"}}</div>
+        <div class="col">
+            <a href="{% url 'add_quant_cart' type='prod' cart_id=cart.id  %}"><i class="bi bi-patch-plus"></i></a>
+            <span> </span>
+            <a href="{% url 'del_from_cart' type='prod' cart_id=cart.id  %}"><i class="bi bi-patch-minus"></i></a>
+        </div>
     </div>
-</div>
-{% endfor %}
-<p class="text-end"><span class="fw-bold">всего: </span>{{user.sum_cart}} руб.</p>
-<div class="d-flex justify-content-center">
-    <a href="" class="btn btn-outline-primary me-3">заказать</a>
-    <a href="{% url 'del_cart' %}" class="btn btn-outline-success ms-3">очистить корзину</a>
-</div>
+    {% endfor %}
+    {% for cc in user.carts_constr.all %}
+    {% with cc.present_data as data %}
+    <div class="row">
+        <div class="col text-start" style="line-height: 0.7;">
+            <div class="d-flex">
+                <div>
+                    <input type="checkbox" name="select_consrt_cart" value="{{cc.id}}">
+                </div>
+                <div>
+
+                    <p class="fw-bold">количество слоев: {{data.layers_size}}</p>
+                    {% for layer in data.layers %}
+                    <p class="fw-bold">слой {{layer.step}}</p>
+                    <p class="ms-2">бисквит: {{layer.bisquit}}</p>
+                    <p class="ms-2">форма: {{layer.form}}</p>
+                    {% for key,val in layer.size.items %}
+                    <p class="ms-3">{{key}} {{val|floatformat:2}} см.</p>
+                    {% endfor %}
+                    {% endfor %}
+                    <p>начинка: {{data.filling}}</p>
+                    <p>вес торта: {{data.full_weight}} кг</p>
+                    <p>ккал в торте: {{data.ful_calorie}} ккал</p>
+                    <p>гостей: {{data.guest}}</p>
+                </div>
+            </div>
+
+        </div>
+        <div class="col">
+            <p>{{cc.price|floatformat:"2g"}}</p>
+        </div>
+        <div class="col">
+            <p>{{cc.quantity}}</p>
+        </div>
+        <div class="col">
+            <p>{{cc.get_sum|floatformat:"2g"}}</p>
+        </div>
+        <div class="col">
+            <a href="{% url 'add_quant_cart' type='constr' cart_id=cc.id %}"><i class="bi bi-patch-plus"></i></a>
+            <span> </span>
+            <a href="{% url 'del_from_cart' type='constr' cart_id=cc.id %}"><i class="bi bi-patch-minus"></i></a>
+        </div>
+    </div>
+    {% endwith %}
+    {% endfor %}
+    <p class="text-end"><span class="fw-bold">всего: </span>{{user.sum_cart|floatformat:"2g"}} руб.</p>
+    <div class="d-flex justify-content-center">
+        <button type="submit" class="btn btn-outline-primary me-3">заказать</button>
+        <a href="{% url 'del_cart' %}" class="btn btn-outline-success ms-3">очистить корзину</a>
+    </div>
+</form>
 {% else %}
 <h3>корзина пуста</h3>
 {% endif %}
+
 <script>
     function displayImg(id) {
         const x = event.clientX; // получаем координату X мыши

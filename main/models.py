@@ -7,6 +7,8 @@ from django.core.files.base import ContentFile
 from django.contrib.auth.models import User
 from diplom.settings import MEDIA_ROOT
 from django.shortcuts import reverse
+from math import prod
+from diplom.settings import coefficient
 # Create your models here.
 
 
@@ -145,11 +147,13 @@ class Cart(models.Model):
         verbose_name = 'Корзина'
         verbose_name_plural = 'Корзины'
 
+
 class Bisquit(models.Model):
     title = models.CharField('Название', max_length=30)
     descrition = models.TextField('Описание')
     calorie = models.IntegerField('Ккал/100гр', default=0)
     weight = models.IntegerField('Вес кг/м3', default=0)
+    price = models.FloatField('цена за кг', default=0)
 
     def __str__(self):
         return f'{self.title}'
@@ -162,9 +166,104 @@ class Filling(models.Model):
     descrition = models.TextField('Описание')
     calorie = models.IntegerField('Ккал/100гр', default=0)
     weight = models.IntegerField('Вес кг/м3', default=0)
+    price = models.FloatField('цена за кг', default=0)
 
     def __str__(self):
         return f'{self.title}'
     class Meta:
         verbose_name = 'Начинка'
         verbose_name_plural = 'Начинки'
+
+class CartConstructor(models.Model):
+    user = models.ForeignKey(
+        User, verbose_name='пользователь', on_delete=models.CASCADE, null=False, related_name='carts_constr')
+    uniq_id = models.CharField('хекс', max_length=100)
+    data = models.JSONField()  # Поле для хранения JSON-данных
+    quantity = models.IntegerField('количество',default=1)
+    price = models.IntegerField('Цена',default = 0)
+
+    def present_data(self):
+        def replace_keys(original_dict, replacement_dict):
+            return {replacement_dict.get(key, key): value for key, value in original_dict.items()}
+        replacement_size = {
+            'a': 'длина',
+            'b': 'ширина',
+            'c': 'высота',
+            'r': 'радиус',
+            'h': 'высота'
+        }
+        replacement_form = {
+            'circle': 'круг',
+            'square': 'квадрат',
+            'rectangle': 'прямоугольник',
+        }
+        data = self.data
+        price = 0
+        present = {}
+        present['layers_size'] = len(data)-2
+        present['layers']=[]
+        for step, dat in data.items():
+                if int(step) == 1:
+                    present['guest'] = dat.get('guest')
+                if int(step) > 1 and  int(step) < len(data):
+                    bisquit = Bisquit.objects.get(id=dat.get('bisquit'))
+                    present['layers'].append({
+                        'form':replacement_form.get(dat.get('form'), dat.get('form')),
+                        'bisquit':bisquit,
+                        'size':replace_keys(dat.get('size'), replacement_size),
+                        'step':int(step)-1
+                        }
+                        )
+                if int(step) == len(data):
+                    filling = Filling.objects.get(id=dat.get('filling'))
+                    present['filling'] = filling
+
+        full_weight,ful_calorie = 0, 0
+        for layer in present['layers']:
+            val = 0
+            match layer['form']:
+                case 'круг':
+                    val = 3.14*layer['size']['радиус']
+                case 'квадрат':
+                    val = 1
+                case 'прямоугольник':
+                    val = 1
+            v = f'{val*prod(layer['size'].values()):.2f}'
+            
+            layer['weight'] = float(v)*layer['bisquit'].weight/1000000
+            price += layer['weight']*layer['bisquit'].price
+            layer['calorie'] = layer['weight']*10*layer['bisquit'].calorie
+            full_weight += layer['weight']
+            ful_calorie += layer['calorie']
+        present['full_weight'] = f'{full_weight:.2f}'
+        filling_ccal,filling_weight = 0, 0
+        if present.get('filling'):
+            filling_weight = float(present['full_weight'])*0.2
+            price += present['filling'].price*filling_weight
+            filling_ccal = filling_weight*present['filling'].calorie*10
+        self.price = int(price*coefficient)
+        self.save()
+        present['ful_calorie'] = f'{ful_calorie + filling_ccal:.2f}'
+        present['full_weight'] = f'{full_weight+filling_weight:.2f}'
+
+        return present
+
+    def get_sum(self):
+        return self.price*self.quantity
+    
+    def remove_from_cart(self):
+        self.quantity -=1
+        self.save()
+        return f'удалено из корзины'
+    
+    def add_quant_to_cart(self):
+        self.quantity +=1
+        self.save()
+        return f'добавлено в корзину'
+    
+    def __str__(self):
+        return f'{self.user}'
+    
+    class Meta:
+        verbose_name = 'Конструктор корзина'
+        verbose_name_plural = 'Конструктор корзина'

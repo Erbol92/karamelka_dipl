@@ -20,14 +20,15 @@
 <input type="number" id="stepCount" min="1" required>
 <button id="createSteps" class="btn btn-sm btn-success">Создать слои</button>
 
-<div id="multiStepForm" style="margin-top: 20px;">
+<div id="multiStepForm" class="mb-3" style="margin-top: 20px;">
     <div id="stepsContainer"></div>
     <button type="button" id="prevBtn" style="display:none;" class="btn btn-sm btn-primary">Назад</button>
     <button type="button" id="nextBtn" style="display:none;" class="btn btn-sm btn-primary">Далее</button>
-    <button type="submit" id="submitBtn" style="display:none;" class="btn btn-sm btn-primary">Отправить</button>
-    <button type="button" id="buildCacke" style="display:none;" class="btn btn-sm btn-primary">buildCake</button>
+    <button type="button" id="submitBtn" style="display:none;" class="btn btn-sm btn-primary">добавить в
+        корзину</button>
+    <button type="button" id="buildCacke" style="display:none;" class="btn btn-sm btn-primary">показать модель</button>
 </div>
-<div id="container"></div>
+<div id="container" class="mt-3"></div>
 
 <script>
     const stepsContainer = document.getElementById('stepsContainer');
@@ -57,8 +58,8 @@
                 stepDiv.innerHTML = `
                     <h2>Шаг ${i}</h2>
                     <div class="d-grid mt-2 mb-2 justify-content-between m-auto">
-                    <label class="form-label">количество гостей: <span id="value_range"></span>
-                        <input type="range" class="form-range" min="1" max="20" step="1" id="guest_range" onchange="showValue()" name="select_guest">
+                    <label class="form-label">количество гостей: <span id="value_range">10</span>
+                        <input type="range" class="form-range" min="1" max="20" step="1" id="guest_range" onchange="showValue()" name="select_guest" value=10>
                     </label>
                     </div>
                     
@@ -349,11 +350,32 @@
             // Обновление общей высоты
             totalHeight += dimensions.height; // Увеличиваем общую высоту на высоту текущего слоя
         }
-
+        if (Object.keys(jsonObject[1]).length === 0)
+            jsonObject[1]['guest'] = 10
+        console.log(jsonObject[1])
         console.log(JSON.stringify(jsonObject))
     });
 
 </script>
 
-
+<script>
+    const smbBtn = document.getElementById('submitBtn')
+    smbBtn.onclick = function () {
+        fetch("{{ request.scheme }}://{{ request.META.HTTP_HOST }}{% url 'constructor_ajax' %}", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': `{{ csrf_token }}`,
+            },
+            body: JSON.stringify(jsonObject),
+        })
+            .then(response => response.json())
+            .then(data => {
+                console.log('Success:', data);
+            })
+            .catch((error) => {
+                console.error('Error:', error);
+            });
+    }
+</script>
 {% endblock %}

@@ -28,6 +28,8 @@ class UserProxy(User):
         summary = 0
         for cart in self.carts.all():
             summary +=cart.get_pos_sum()
+        for cart in self.carts_constr.all():
+            summary +=cart.get_sum()
         return summary
     
     

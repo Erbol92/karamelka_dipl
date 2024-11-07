@@ -31,6 +31,9 @@
                         href="{% url 'category_page' category.slug %}">{{category.name_category}}</a>
                 </li>
                 {% endfor %}
+                <li class="list_item"><a class="btn btn-outline-white fw-bold fs-3"
+                        href="{% url 'constructor' %}">сделай сам</a>
+                </li>
                 <li class="list_item dropdown">
                     <a class="dropdown-toggle btn btn-outline-white fw-bold fs-3" href="#" role="button"
                         data-bs-toggle="dropdown" aria-expanded="false">
