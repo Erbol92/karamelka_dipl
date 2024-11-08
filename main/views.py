@@ -77,12 +77,25 @@ def get_bisquit_description(request, bisquit_id):
 def cart_view(request):
     context ={
         'title':'корзины',
-        'user' : UserProxy.objects.get(pk=request.user.pk)
+        'user' : UserProxy.objects.get(pk=request.user.pk),
+        'orders': request.user.orders.all()
     }
     data = request.POST or None
     if data:
-        print(data)
+        select_cart = data.getlist('select_cart')
+        select_consrt_cart = data.getlist('select_consrt_cart')
+        if select_cart:
+            for cart_id in select_cart:
+                cart = Cart.objects.get(id=int(cart_id))
+                Order.objects.create(user=request.user,product=cart.product,quantity=cart.quantity)
+            Cart.objects.filter(id__in=select_cart).delete()
+        if select_consrt_cart:
+            for cart_id in select_consrt_cart:
+                cart = CartConstructor.objects.get(id=int(cart_id))
+                Order.objects.create(user=request.user,consrt=cart.data,quantity=cart.quantity)
+            CartConstructor.objects.filter(id__in=select_consrt_cart).delete()
     return render(request, 'main/templates/cart.html', context=context)
+
 
 def add_to_cart(request,product_id:int):
     user = UserProxy.objects.get(id=request.user.id)

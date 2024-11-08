@@ -182,7 +182,49 @@ class CartConstructor(models.Model):
     quantity = models.IntegerField('количество',default=1)
     price = models.IntegerField('Цена',default = 0)
 
-    def present_data(self):
+    def get_data(self):
+        return present_data(self)
+        
+
+    def get_sum(self):
+        return self.price*self.quantity
+    
+    def remove_from_cart(self):
+        self.quantity -=1
+        self.save()
+        return f'удалено из корзины'
+    
+    def add_quant_to_cart(self):
+        self.quantity +=1
+        self.save()
+        return f'добавлено в корзину'
+    
+    def __str__(self):
+        return f'{self.user}'
+    
+    class Meta:
+        verbose_name = 'Конструктор корзина'
+        verbose_name_plural = 'Конструктор корзина'
+
+class Order(models.Model):
+    user = models.ForeignKey(
+        User, verbose_name='пользователь', on_delete=models.CASCADE, null=False, related_name='orders')
+    product = models.ForeignKey(Products,verbose_name='товар', on_delete=models.CASCADE,null=True)
+    consrt = models.JSONField('Заказ из конструктора',null=True)  # Поле для хранения JSON-данных
+    quantity = models.PositiveIntegerField('Количество',default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f'заказ {self.user} {self.quantity} x {self.product or self.consrt}'
+    
+    def get_data(self):
+        print(present_data(self))
+        return present_data(self)
+    class Meta:
+        verbose_name = 'Заказ'
+        verbose_name_plural = 'Заказы'
+
+def present_data(obj):
         def replace_keys(original_dict, replacement_dict):
             return {replacement_dict.get(key, key): value for key, value in original_dict.items()}
         replacement_size = {
@@ -197,7 +239,8 @@ class CartConstructor(models.Model):
             'square': 'квадрат',
             'rectangle': 'прямоугольник',
         }
-        data = self.data
+        data = obj.data if hasattr(obj,'data') else obj.consrt 
+
         price = 0
         present = {}
         present['layers_size'] = len(data)-2
@@ -241,29 +284,9 @@ class CartConstructor(models.Model):
             filling_weight = float(present['full_weight'])*0.2
             price += present['filling'].price*filling_weight
             filling_ccal = filling_weight*present['filling'].calorie*10
-        self.price = int(price*coefficient)
-        self.save()
+        obj.price = int(price*coefficient)
+        obj.save()
         present['ful_calorie'] = f'{ful_calorie + filling_ccal:.2f}'
         present['full_weight'] = f'{full_weight+filling_weight:.2f}'
 
         return present
-
-    def get_sum(self):
-        return self.price*self.quantity
-    
-    def remove_from_cart(self):
-        self.quantity -=1
-        self.save()
-        return f'удалено из корзины'
-    
-    def add_quant_to_cart(self):
-        self.quantity +=1
-        self.save()
-        return f'добавлено в корзину'
-    
-    def __str__(self):
-        return f'{self.user}'
-    
-    class Meta:
-        verbose_name = 'Конструктор корзина'
-        verbose_name_plural = 'Конструктор корзина'
