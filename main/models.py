@@ -9,6 +9,7 @@ from diplom.settings import MEDIA_ROOT
 from django.shortcuts import reverse
 from math import prod
 from diplom.settings import coefficient
+import json
 # Create your models here.
 
 
@@ -131,6 +132,7 @@ class Cart(models.Model):
         return f'{self.user} {self.product.name_product} - {self.quantity} шт.'
 
     def get_pos_sum(self):
+        print(self.product.price,self.quantity)
         return self.product.price*self.quantity
     
     def remove_from_cart(self):
@@ -209,11 +211,12 @@ class CartConstructor(models.Model):
 class Order(models.Model):
     user = models.ForeignKey(
         User, verbose_name='пользователь', on_delete=models.CASCADE, null=False, related_name='orders')
-    product = models.ForeignKey(Products,verbose_name='товар', on_delete=models.CASCADE,null=True)
-    consrt = models.JSONField('Заказ из конструктора',null=True)  # Поле для хранения JSON-данных
+    product = models.ForeignKey(Products,verbose_name='товар', on_delete=models.CASCADE,null=True,blank=True)
+    consrt = models.JSONField('Заказ из конструктора',null=True,blank=True)  # Поле для хранения JSON-данных
     quantity = models.PositiveIntegerField('Количество',default=0)
     created_at = models.DateTimeField(auto_now_add=True)
-
+    place =  models.JSONField('доставка/адрес',null=False)
+    payment =  models.JSONField('оплата',null=False)
     def __str__(self):
         return f'заказ {self.user} {self.quantity} x {self.product or self.consrt}'
     
@@ -222,6 +225,24 @@ class Order(models.Model):
     class Meta:
         verbose_name = 'Заказ'
         verbose_name_plural = 'Заказы'
+
+    def json_place(self):
+        if not self.place:  # Проверяем, что поле не пустое
+            return {}  # Возвращаем пустой словарь, если поле пустое
+        try:
+            return json.loads(self.place)  # Преобразуем JSON-строку обратно в словарь
+        except json.JSONDecodeError as e:
+            print(f"Error decoding JSON: {e}")
+            return {}  # Возвращаем пустой словарь в случае ошибки
+    def json_payment(self):
+        if not self.payment:  # Проверяем, что поле не пустое
+            return {}  # Возвращаем пустой словарь, если поле пустое
+
+        try:
+            return json.loads(self.payment)  # Преобразуем JSON-строку обратно в словарь
+        except json.JSONDecodeError as e:
+            print(f"Error decoding JSON: {e}")
+        return {}  # Возвращаем пустой словарь в случае ошибки
 
 def present_data(obj):
         def replace_keys(original_dict, replacement_dict):

@@ -85,15 +85,45 @@ def cart_view(request):
         print(data)
         select_cart = data.getlist('select_cart')
         select_consrt_cart = data.getlist('select_consrt_cart')
+        place,pay = {},{}
+        delivery = data.get('delivery')
+        if delivery:
+            place['delivery'] = delivery
+            if delivery =='доставка':
+                address = data.get('address')
+                print(address)
+                if address:
+                    place['address'] = address
+                    
+            place = json.dumps(place, indent=4)
+            print(place)
+        payment = data.get('payment')
+        if payment:
+            pay['payment'] = payment
+            card_number = data.get('cardNumber')
+            if payment == 'безналичная':
+                expiry_date= data.get('expiryDate')
+                cvv = data.get('cvv')
+                # pay['payment'] = {payment:{'card_number':card_number,
+                #                         'expiry_date':expiry_date,
+                #                         'cvv':cvv
+                #                         }
+                #                 }
+            pay = json.dumps(pay, indent=4)
         if select_cart:
+            orders = []
             for cart_id in select_cart:
                 cart = Cart.objects.get(id=int(cart_id))
-                Order.objects.create(user=request.user,product=cart.product,quantity=cart.quantity)
+                orders.append(Order(user=request.user,product=cart.product,quantity=cart.quantity,place=place,payment=pay))
+            Order.objects.bulk_create(orders)
             Cart.objects.filter(id__in=select_cart).delete()
+        
         if select_consrt_cart:
+            orders = []
             for cart_id in select_consrt_cart:
                 cart = CartConstructor.objects.get(id=int(cart_id))
-                Order.objects.create(user=request.user,consrt=cart.data,quantity=cart.quantity)
+                orders.append(Order(user=request.user,consrt=cart.data,quantity=cart.quantity,place=place,payment=pay))
+            Order.objects.bulk_create(orders)
             CartConstructor.objects.filter(id__in=select_consrt_cart).delete()
     return render(request, 'main/templates/cart.html', context=context)
 

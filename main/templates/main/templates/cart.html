@@ -36,7 +36,7 @@
         <div class="row">
 
             <div class="col">
-                <input type="checkbox" name="select_cart" value={{cart.id}}>
+                <input type="checkbox" name="select_cart" class="select_cart" value={{cart.id}}>
                 <a href="{{cart.product.get_absolute_url}}" onmouseover="displayImg({{cart.id}})"
                     onmouseleave="hideImg({{cart.id}})">{{cart.product.name_product}}</a>
             </div>
@@ -99,65 +99,68 @@
         {% endwith %}
         {% endfor %}
         <p class="text-end"><span class="fw-bold">всего: </span>{{user.sum_cart|floatformat:"2g"}} руб.</p>
-
-        <div class="input-group mb-3">
-            <div class="input-group-prepend">
-                <label class="input-group-text" for="delivery">Выберите способ доставки:</label>
-            </div>
-            <select class="custom-select" id="delivery" name="delivery" onchange="toggleAddressInput()">
-                <option value="pickup">самовывоз</option>
-                <option value="address">доставка по адресу</option>
-            </select>
-        </div>
-
-        <div id="addressInput" class="hidden">
-            <div class="input-group input-group-sm mb-3">
+        <div id="card" style="display: none;">
+            <div class="input-group mb-3">
                 <div class="input-group-prepend">
-                    <span class="input-group-text" id="inputGroup-sizing-sm">Введите адрес:</span>
+                    <label class="input-group-text" for="delivery">Выберите способ доставки:</label>
                 </div>
-                <input type="text" class="form-control" aria-label="Small" aria-describedby="inputGroup-sizing-sm"
-                    id="address" name="address" placeholder="Ваш адрес">
-            </div>
-        </div>
-
-        <div class="input-group mb-3">
-            <div class="input-group-prepend">
-                <label class="input-group-text" for="payment">Выберите способ оплаты:</label>
-            </div>
-            <select class="custom-select" id="payment" name="payment" onchange="toggleCardInput()">
-                <option value="cash">наличный расчет</option>
-                <option value="card">оплата картой</option>
-            </select>
-        </div>
-        <div id="cardInput" class="hidden">
-            <h3>Введите данные карты:</h3>
-
-            <div class="input-group input-group-sm mb-3">
-                <div class="input-group-prepend">
-                    <span class="input-group-text" id="inputGroup-sizing-sm">Номер карты:</span>
-                </div>
-                <input type="number" class="form-control" aria-label="Small" aria-describedby="inputGroup-sizing-sm"
-                    name="cardNumber" placeholder="Номер карты" maxlength="16">
+                <select class="custom-select" id="delivery" name="delivery" onchange="toggleAddressInput()">
+                    <option value="самовывоз">самовывоз</option>
+                    <option value="доставка">доставка по адресу</option>
+                </select>
             </div>
 
-            <div class="input-group input-group-sm mb-3">
-                <div class="input-group-prepend">
-                    <span class="input-group-text" id="inputGroup-sizing-sm">Срок действия:</span>
+
+            <div id="addressInput" class="hidden">
+                <div class="input-group input-group-sm mb-3">
+                    <div class="input-group-prepend">
+                        <span class="input-group-text" id="inputGroup-sizing-sm">Введите адрес:</span>
+                    </div>
+                    <input type="text" class="form-control" aria-label="Small" aria-describedby="inputGroup-sizing-sm"
+                        id="address" name="address" placeholder="Ваш адрес">
                 </div>
-                <input type="text" class="form-control" aria-label="Small" aria-describedby="inputGroup-sizing-sm"
-                    name="expiryDate" placeholder="ММ/ГГ" maxlength="5">
             </div>
-            <div class="input-group input-group-sm mb-3">
+
+            <div class="input-group mb-3">
                 <div class="input-group-prepend">
-                    <span class="input-group-text" id="inputGroup-sizing-sm">CVV:</span>
+                    <label class="input-group-text" for="payment">Выберите способ оплаты:</label>
                 </div>
-                <input type="text" class="form-control" aria-label="Small" aria-describedby="inputGroup-sizing-sm"
-                    name="cvv" placeholder="CVV" maxlength="3">
+                <select class="custom-select" id="payment" name="payment" onchange="toggleCardInput()">
+                    <option value="наличная">наличный расчет</option>
+                    <option value="безналичная">оплата картой</option>
+                </select>
+            </div>
+            <div id="cardInput" class="hidden">
+                <h3>Введите данные карты:</h3>
+
+                <div class="input-group input-group-sm mb-3">
+                    <div class="input-group-prepend">
+                        <span class="input-group-text" id="inputGroup-sizing-sm">Номер карты:</span>
+                    </div>
+                    <input type="number" class="form-control" aria-label="Small" aria-describedby="inputGroup-sizing-sm"
+                        name="cardNumber" placeholder="Номер карты" maxlength="16">
+                </div>
+
+                <div class="input-group input-group-sm mb-3">
+                    <div class="input-group-prepend">
+                        <span class="input-group-text" id="inputGroup-sizing-sm">Срок действия:</span>
+                    </div>
+                    <input type="text" class="form-control" aria-label="Small" aria-describedby="inputGroup-sizing-sm"
+                        name="expiryDate" placeholder="ММ/ГГ" maxlength="5">
+                </div>
+                <div class="input-group input-group-sm mb-3">
+                    <div class="input-group-prepend">
+                        <span class="input-group-text" id="inputGroup-sizing-sm">CVV:</span>
+                    </div>
+                    <input type="text" class="form-control" aria-label="Small" aria-describedby="inputGroup-sizing-sm"
+                        name="cvv" placeholder="CVV" maxlength="3">
+                </div>
             </div>
         </div>
 
         <div class="d-flex justify-content-center">
-            <button type="submit" class="btn btn-outline-primary me-3">заказать</button>
+            <button type="submit" class="btn btn-outline-primary me-3" id="btn_order"
+                style="display: none;">заказать</button>
             <a href="{% url 'del_cart' %}" class="btn btn-outline-success ms-3">очистить корзину</a>
         </div>
     </form>
@@ -173,11 +176,12 @@
         {{date.grouper}}
         <div>
             {% for order in date.list %}
-            <div class="d-flex">
-                <span>{{order.product|default:''}}</span>
-                {% if order.consrt %}
-                {% with order.get_data as data %}
-                <span data-toggle="tooltip" title="
+            <div class="row">
+                <div class="col">
+                    <span>{{order.product|default:''}}</span>
+                    {% if order.consrt %}
+                    {% with order.get_data as data %}
+                    <span data-toggle="tooltip" title="
                 {% for layer in data.layers %}
                 слой {{layer.step}}
                 {{layer.bisquit}}<br>форма: {{layer.form}}
@@ -192,10 +196,19 @@
                 <p>ккал в торте: {{data.ful_calorie|floatformat:2}} ккал</p>
                 ">на заказ: </span>
 
-                {% endwith %}
-                {% endif %}
-                <span> * {{order.quantity}} шт.</span>
+                    {% endwith %}
+                    {% endif %}
+                </div>
+                <div class="col">
+                    <span> * {{order.quantity}} шт.</span>
+                </div>
+
+                <div class="col text-start">
+                    <p>способ: {{order.json_place.delivery}} {{order.json_place.address}}</p>
+                    <p>оплата: {{order.json_payment.payment}}</p>
+                </div>
             </div>
+
             {% endfor %}
         </div>
         {% endfor %}
@@ -244,7 +257,9 @@
     function toggleAddressInput() {
         const deliverySelect = document.getElementById('delivery');
         const addressInput = document.getElementById('addressInput');
-        if (deliverySelect.value === 'address') {
+        console.log(deliverySelect.value)
+        if (deliverySelect.value === 'доставка') {
+
             addressInput.classList.remove('hidden');
         } else {
             addressInput.classList.add('hidden');
@@ -254,11 +269,29 @@
     function toggleCardInput() {
         const paymentSelect = document.getElementById('payment');
         const cardInput = document.getElementById('cardInput');
-        if (paymentSelect.value === 'card') {
+        if (paymentSelect.value === 'безналичная') {
             cardInput.classList.remove('hidden');
         } else {
             cardInput.classList.add('hidden');
         }
     }
+</script>
+<script>
+    // Получаем все чекбоксы и блок для отображения
+    const checkboxes = document.querySelectorAll('.select_cart');
+    const infoBlock = document.getElementById('card');
+    const btn_order = document.getElementById('btn_order');
+
+    // Функция для проверки состояния чекбоксов
+    function checkCheckboxes() {
+        let anyChecked = Array.from(checkboxes).some(checkbox => checkbox.checked);
+        infoBlock.style.display = anyChecked ? 'block' : 'none';
+        btn_order.style.display = anyChecked ? 'block' : 'none';
+    }
+
+    // Добавляем обработчик события для каждого чекбокса
+    checkboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', checkCheckboxes);
+    });
 </script>
 {% endblock %}
