@@ -8,6 +8,14 @@
         border-style: groove;
         text-align: center;
     }
+
+    .hidden {
+        display: none;
+    }
+
+    #cardInput .input-group-sm {
+        width: fit-content;
+    }
 </style>
 <div class="d-flex mb-3">
     <button type="button" class="btn btn-info fw-bold" onclick="Hide('cart_form')">корзина</button>
@@ -91,6 +99,63 @@
         {% endwith %}
         {% endfor %}
         <p class="text-end"><span class="fw-bold">всего: </span>{{user.sum_cart|floatformat:"2g"}} руб.</p>
+
+        <div class="input-group mb-3">
+            <div class="input-group-prepend">
+                <label class="input-group-text" for="delivery">Выберите способ доставки:</label>
+            </div>
+            <select class="custom-select" id="delivery" name="delivery" onchange="toggleAddressInput()">
+                <option value="pickup">самовывоз</option>
+                <option value="address">доставка по адресу</option>
+            </select>
+        </div>
+
+        <div id="addressInput" class="hidden">
+            <div class="input-group input-group-sm mb-3">
+                <div class="input-group-prepend">
+                    <span class="input-group-text" id="inputGroup-sizing-sm">Введите адрес:</span>
+                </div>
+                <input type="text" class="form-control" aria-label="Small" aria-describedby="inputGroup-sizing-sm"
+                    id="address" name="address" placeholder="Ваш адрес">
+            </div>
+        </div>
+
+        <div class="input-group mb-3">
+            <div class="input-group-prepend">
+                <label class="input-group-text" for="payment">Выберите способ оплаты:</label>
+            </div>
+            <select class="custom-select" id="payment" name="payment" onchange="toggleCardInput()">
+                <option value="cash">наличный расчет</option>
+                <option value="card">оплата картой</option>
+            </select>
+        </div>
+        <div id="cardInput" class="hidden">
+            <h3>Введите данные карты:</h3>
+
+            <div class="input-group input-group-sm mb-3">
+                <div class="input-group-prepend">
+                    <span class="input-group-text" id="inputGroup-sizing-sm">Номер карты:</span>
+                </div>
+                <input type="number" class="form-control" aria-label="Small" aria-describedby="inputGroup-sizing-sm"
+                    name="cardNumber" placeholder="Номер карты" maxlength="16">
+            </div>
+
+            <div class="input-group input-group-sm mb-3">
+                <div class="input-group-prepend">
+                    <span class="input-group-text" id="inputGroup-sizing-sm">Срок действия:</span>
+                </div>
+                <input type="text" class="form-control" aria-label="Small" aria-describedby="inputGroup-sizing-sm"
+                    name="expiryDate" placeholder="ММ/ГГ" maxlength="5">
+            </div>
+            <div class="input-group input-group-sm mb-3">
+                <div class="input-group-prepend">
+                    <span class="input-group-text" id="inputGroup-sizing-sm">CVV:</span>
+                </div>
+                <input type="text" class="form-control" aria-label="Small" aria-describedby="inputGroup-sizing-sm"
+                    name="cvv" placeholder="CVV" maxlength="3">
+            </div>
+        </div>
+
         <div class="d-flex justify-content-center">
             <button type="submit" class="btn btn-outline-primary me-3">заказать</button>
             <a href="{% url 'del_cart' %}" class="btn btn-outline-success ms-3">очистить корзину</a>
@@ -174,5 +239,26 @@
             html: true // Позволяет использовать HTML в подсказках
         });
     });
+</script>
+<script>
+    function toggleAddressInput() {
+        const deliverySelect = document.getElementById('delivery');
+        const addressInput = document.getElementById('addressInput');
+        if (deliverySelect.value === 'address') {
+            addressInput.classList.remove('hidden');
+        } else {
+            addressInput.classList.add('hidden');
+        }
+    }
+
+    function toggleCardInput() {
+        const paymentSelect = document.getElementById('payment');
+        const cardInput = document.getElementById('cardInput');
+        if (paymentSelect.value === 'card') {
+            cardInput.classList.remove('hidden');
+        } else {
+            cardInput.classList.add('hidden');
+        }
+    }
 </script>
 {% endblock %}

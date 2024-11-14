@@ -218,7 +218,6 @@ class Order(models.Model):
         return f'заказ {self.user} {self.quantity} x {self.product or self.consrt}'
     
     def get_data(self):
-        print(present_data(self))
         return present_data(self)
     class Meta:
         verbose_name = 'Заказ'

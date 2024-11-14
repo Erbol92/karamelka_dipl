@@ -82,6 +82,7 @@ def cart_view(request):
     }
     data = request.POST or None
     if data:
+        print(data)
         select_cart = data.getlist('select_cart')
         select_consrt_cart = data.getlist('select_consrt_cart')
         if select_cart:
