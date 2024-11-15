@@ -165,51 +165,54 @@
         </div>
     </form>
     {% else %}
-    <h3 style="display: none;" id="cart_form">корзина пуста</h3>
+    <h3 style="display: none;" id="cart_form" class=" fw-bold">корзина пуста</h3>
     {% endif %}
     <div style="display: none;" id="order_form">
 
         {% if orders %}
-        <h3 class="text-span">заказы</h3>
-        {% regroup orders by created_at.date as orders_list %}
+        <h3 class="text-span fw-bold">заказы</h3>
+        {% regroup orders by created_at|date:"d-m-Y H:i" as orders_list %}
         {% for date in orders_list %}
-        {{date.grouper}}
+        <p class="text-secondary">{{date.grouper}}</p>
         <div>
             {% for order in date.list %}
             <div class="row">
-                <div class="col">
-                    <span>{{order.product|default:''}}</span>
-                    {% if order.consrt %}
-                    {% with order.get_data as data %}
-                    <span data-toggle="tooltip" title="
-                {% for layer in data.layers %}
-                слой {{layer.step}}
-                {{layer.bisquit}}<br>форма: {{layer.form}}
-                                {% for key,val in layer.size.items %}
-                                <br>{{key}} {{val|floatformat:2}} см.
-                                {% endfor %}
-                                <p>начинка: {{data.filling}}</p>
-                </span>
-                {% endfor %}
-                <p>гостей: {{data.guest}}</p>
-                <p>вес торта: {{data.full_weight|floatformat:2}} кг</p>
-                <p>ккал в торте: {{data.ful_calorie|floatformat:2}} ккал</p>
-                ">на заказ: </span>
+                <div class="col-8">
+                    <div class="row">
+                        <div class="col">
+                            <span>{{order.product|default:''}}</span>
+                            {% if order.consrt %}
+                            {% with order.get_data as data %}
+                            <span data-toggle="tooltip" title="
+                        {% for layer in data.layers %}
+                        слой {{layer.step}}
+                        {{layer.bisquit}}<br>форма: {{layer.form}}
+                                        {% for key,val in layer.size.items %}
+                                        <br>{{key}} {{val|floatformat:2}} см.
+                                        {% endfor %}
+                                        <p>начинка: {{data.filling}}</p>
+                        </span>
+                        {% endfor %}
+                        <p>гостей: {{data.guest}}</p>
+                        <p>вес торта: {{data.full_weight|floatformat:2}} кг</p>
+                        <p>ккал в торте: {{data.ful_calorie|floatformat:2}} ккал</p>
+                        ">на заказ: </span>
 
-                    {% endwith %}
-                    {% endif %}
-                </div>
-                <div class="col">
-                    <span> * {{order.quantity}} шт.</span>
-                </div>
-
-                <div class="col text-start">
-                    <p>способ: {{order.json_place.delivery}} {{order.json_place.address}}</p>
-                    <p>оплата: {{order.json_payment.payment}}</p>
+                            {% endwith %}
+                            {% endif %}
+                        </div>
+                        <div class="col">
+                            <span> * {{order.quantity}} шт.</span>
+                        </div>
+                    </div>
                 </div>
             </div>
-
             {% endfor %}
+            <div class="text-start">
+                <p>способ: {{date.list.0.json_place.delivery}} {{date.list.0.json_place.address}}</p>
+                <p>оплата: {{date.list.0.json_payment.payment}}</p>
+                <p class="text-info">состояние: {{ date.list.0.get_state_display }}</p>
+            </div>
         </div>
         {% endfor %}
         {% else %}

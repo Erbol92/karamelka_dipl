@@ -1,0 +1,68 @@
+{% extends 'main/templates/base.html' %}
+{% block content %}
+{% if object_list %}
+<h3 class="text-span fw-bold">заказы</h3>
+{% regroup object_list by created_at|date:"d-m-Y H:i" as object_list_list %}
+{% for date in object_list_list %}
+<p class="text-secondary">{{date.grouper}}</p>
+<div>
+    {% regroup date.list by date as grouped_dates %}
+    {% for date_group in grouped_dates %}
+    {% regroup date_group.list by user as grouped_users %}
+    {% for user_group in grouped_users %}
+    <h4>{{ user_group.grouper.username }} {{ user_group.grouper.profile.phone }} <br>
+        {{user_group.grouper.get_full_name }}</h4> <!-- Имя пользователя -->
+    <div class="d-flex">
+        <div class="d-block w-50">
+            {% for order in user_group.list %}
+            <div class="row">
+                <div class="col-10 text-end">
+                    <span>{{ order.product|default:'' }}</span>
+                    {% if order.consrt %}
+                    {% with order.get_data as data %}
+                    <span data-toggle="tooltip" title="
+                                                    {% for layer in data.layers %}
+                                                        слой {{ layer.step }} {{ layer.bisquit }}<br>форма: {{ layer.form }}
+                                                        {% for key, val in layer.size.items %}
+                                                            <br>{{ key }} {{ val|floatformat:2 }} см.
+                                                        {% endfor %}
+                                                        <p>начинка: {{ data.filling }}</p>
+                                                    {% endfor %}
+                                                    <p>гостей: {{ data.guest }}</p>
+                                                    <p>вес торта: {{ data.full_weight|floatformat:2 }} кг</p>
+                                                    <p>ккал в торте: {{ data.ful_calorie|floatformat:2 }} ккал</p>
+                                                ">на заказ: </span>
+                    {% endwith %}
+                    {% endif %}
+                </div>
+                <div class="col-2">
+                    <span> * {{ order.quantity }} шт.</span>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        <div class="text-start w-25">
+            <p>способ: {{ user_group.list.0.json_place.delivery }} {{ user_group.list.0.json_place.address }}</p>
+            <p>оплата: {{ user_group.list.0.json_payment.payment }}</p>
+            <p class="text-info">состояние: {{ user_group.list.0.get_state_display }}</p>
+        </div>
+        {% if user_group.list.0.state == 'in_job' %}
+        <div class="text-end m-auto">
+            <a href="{% url 'order_ready' user_group.list.0.id  %}" class="btn btn-outline-success">готов</a>
+        </div>
+        {% else %}
+        <div class="text-end m-auto">
+            <a href="{% url 'order_status' user_group.list.0.id  %}" class="btn btn-outline-success">исполнен</a>
+        </div>
+        {% endif %}
+    </div>
+    <hr>
+    {% endfor %}
+    {% endfor %}
+</div>
+
+{% endfor %}
+{% else %}
+<h3 class="text-span">заказов нет</h3>
+{% endif %}
+{% endblock %}

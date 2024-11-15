@@ -10,6 +10,7 @@ from django.shortcuts import reverse
 from math import prod
 from diplom.settings import coefficient
 import json
+from datetime import datetime
 # Create your models here.
 
 
@@ -217,6 +218,11 @@ class Order(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     place =  models.JSONField('доставка/адрес',null=False)
     payment =  models.JSONField('оплата',null=False)
+    CHOICE = {'in_job': 'в работе',
+              'ready':'готов',}
+    state = models.CharField('состояние',max_length=6, choices=CHOICE,default = 'in_job')
+    status = models.BooleanField('отработан',default=False)
+    status_at = models.DateTimeField('время готовности',null=True,blank=True)
     def __str__(self):
         return f'заказ {self.user} {self.quantity} x {self.product or self.consrt}'
     

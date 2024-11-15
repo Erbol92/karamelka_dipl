@@ -157,3 +157,4 @@ def add_quant_cart(request,type:str,cart_id:int):
             cart = Cart.objects.get(id=cart_id)
     messages.success(request, cart.add_quant_to_cart())
     return redirect('/main/cart_view/')
+
