@@ -168,14 +168,14 @@
     <h3 style="display: none;" id="cart_form" class=" fw-bold">корзина пуста</h3>
     {% endif %}
     <div style="display: none;" id="order_form">
-
         {% if orders %}
         <h3 class="text-span fw-bold">заказы</h3>
         {% regroup orders by created_at|date:"d-m-Y H:i" as orders_list %}
         {% for date in orders_list %}
-        <p class="text-secondary">{{date.grouper}}</p>
-        <div>
+        <p class="text-secondary text-end">{{date.grouper}}</p>
+        <div class="row border p-3 mb-2">
             {% for order in date.list %}
+            <p>заказ № {{order.id}}</p>
             <div class="row">
                 <div class="col-8">
                     <div class="row">

@@ -41,7 +41,13 @@ INSTALLED_APPS = [
     'user_manager',
     "crispy_forms",
     "crispy_bootstrap5",
+    "webpush",
 ]
+WEBPUSH_SETTINGS = {
+"VAPID_ADMIN_EMAIL": "erbolbaik1@gmail.com",
+"VAPID_PUBLIC_KEY": "BI_CXYgA15Q_ZFsITW6eMUS5J6XRjMll6xf5NlAPmdNHJgxF_fKUM8vcUJrBHfy8g7d33J_1r2l4Ih2jRXEWnow",
+"VAPID_PRIVATE_KEY": "_Oy-hmiL0LZwnYUcOZZpRapVZT7NqaBRnY2X0yOj2XM"
+}
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',

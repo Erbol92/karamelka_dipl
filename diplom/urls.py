@@ -25,6 +25,10 @@ urlpatterns = [
     path('', include('user_manager.urls'))
 ]
 
+urlpatterns += [
+    path(r'^webpush/', include('webpush.urls'))
+]
+
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL,
                           document_root=settings.MEDIA_ROOT)

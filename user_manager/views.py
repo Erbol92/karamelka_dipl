@@ -15,6 +15,8 @@ from .tasks import *
 # Create your views here.
 
 def auth(request):
+    if request.user.is_authenticated:
+        return redirect ('/main/')
     if request.method == 'POST':
         username = request.POST["username"]
         password = request.POST["password"]
