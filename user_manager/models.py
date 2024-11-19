@@ -32,7 +32,6 @@ class UserProxy(User):
             summary +=cart.get_sum()
         return summary
     
-    
 class Profile(models.Model):
     def image_path(self, instance):
         return f'{MEDIA_ROOT}/profile/{self.prof}/{self.photo.name}'

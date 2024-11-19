@@ -1,5 +1,11 @@
 {% extends 'main/templates/base.html' %}
+{% load crispy_forms_tags %}
 {% block content %}
+<style>
+    .text-muted {
+        font-size: small;
+    }
+</style>
 <h3 class="text-center">{{object.name_product}}</h3>
 <div class="d-flex">
     <div>
@@ -44,4 +50,46 @@
 <div class="product-tile-actions text-center">
     <a href="{% url 'add_to_cart' product_id=object.id %}" class="add-to-cart">добавить в корзину</a>
 </div>
+{% for comment in comments %}
+<div class="p-3 w-75 m-auto">
+    <p class="text-muted">{{comment.user}} {{comment.created_at}}</p>
+    <div class="bg-light">
+        <p>{{comment.content}}</p>
+        <button type="button" class="badge bg-primary text-wrap"
+            onclick="document.getElementById('reply-form-{{ comment.id }}').style.display='block'; return false;">ответить</button>
+    </div>
+</div>
+{% if comment.replies.all %}
+<div class="p-3 w-75 m-auto">
+    {% for reply in comment.replies.all %}
+    <div class="ms-3">
+        <p class="text-success">{{reply.user}} {{reply.created_at}}</p>
+        <div class="bg-light">
+            <p>{{reply.content}}</p>
+            <button type="button" class="badge bg-primary text-wrap"
+                onclick="document.getElementById('reply-form-{{ reply.id }}').style.display='block'; return false;">ответить</button>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+<div id="reply-form-{{ comment.id }}" style="display:none;">
+    <form method="post" class="w-50 m-auto">
+        {% csrf_token %}
+        <input type="hidden" name="parent_id" value="{{ comment.id }}">
+        <!-- Скрытое поле для идентификатора родительского комментария -->
+        {{form|crispy}}
+        <button type="submit">Отправить</button>
+    </form>
+</div>
+
+{% endfor %}
+<form method="POST" class="w-75 m-auto">
+    {% csrf_token %}
+    <input type="hidden" name="parent_id" value="{{ comment.id }}">
+    {{form|crispy}}
+    <button class="btn btn-outline-primary">
+        <отправить>
+    </button>
+</form>
 {% endblock %}

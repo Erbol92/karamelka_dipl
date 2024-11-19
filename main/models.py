@@ -316,3 +316,19 @@ def present_data(obj):
         present['full_weight'] = f'{full_weight+filling_weight:.2f}'
 
         return present
+
+
+class Comment(models.Model):
+    product = models.ForeignKey(Products, related_name='comments', on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    content = models.TextField('комментарий')
+    created_at = models.DateTimeField(auto_now_add=True)
+    parent = models.ForeignKey('self', null=True, blank=True, related_name='replies', on_delete=models.CASCADE)
+    moderated = models.BooleanField('проверено модератором',default=False)
+
+    def __str__(self):
+        return f'Комменатрий {self.user.username} на {self.product.name_product}'
+    
+    class Meta:
+        verbose_name = 'Комментарий'
+        verbose_name_plural = 'Комментарии'

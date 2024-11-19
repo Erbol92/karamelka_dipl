@@ -1,10 +1,11 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from .models import *
 from user_manager.models import UserProxy
 from django.contrib import messages
 from django.http import JsonResponse
 import json
 import uuid
+from .forms import CommentForm
 # Create your views here.
 
 
@@ -18,9 +19,26 @@ def home(request):
 
 def product_detail(request, pk:int, name:str):
     object = Products.objects.get(id=pk)
+    comments = object.comments.filter(parent__isnull=True,moderated=True)
+    form = CommentForm(request.POST or None)
+    if object.id in set(request.user.orders.all().values_list('product',flat=True)):
+        if form.is_valid():
+            parent_id = request.POST.get('parent_id')
+            comment = form.save(commit=False)
+            comment.product = object
+            comment.user = request.user
+            if parent_id:
+                comment.parent = get_object_or_404(Comment, id=parent_id)
+            comment.save()
+            return redirect('product_detail', pk=object.id, name=object.name_product)
+    else:
+        messages.success(request, 'Вы не заказывали данный продукт')
+
     context = {
         'title': object.name_product,
         'object': object,
+        'form':form,
+        'comments':comments,
     }
     return render(request, 'main/templates/product_detail.html', context=context)
 
