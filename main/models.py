@@ -36,6 +36,7 @@ class Products(models.Model):
     description = models.TextField('Описание')
     price = models.FloatField('Цена товара', default=0)
     quantity = models.IntegerField('Кол-во', default=0)
+    weight = models.IntegerField('вес продукта', default=0)
     image = models.ImageField('фото', upload_to=image_path)
 
     def compress_logo(self, image):
@@ -72,12 +73,14 @@ class Products(models.Model):
         return ProductIngredients.objects.filter(product=self)
 
     def get_pfc(self):
-        nutricions = self.get_ingridients().aggregate(
-        total_protein=Cast(models.Sum(models.F('protein') * models.F('amount') / 1000), models.IntegerField()),
-        total_fat=Cast(models.Sum(models.F('fat') * models.F('amount') / 1000), models.IntegerField()),
-        total_carbohydrate=Cast(models.Sum(models.F('carbohydrate') * models.F('amount') / 1000), models.IntegerField()),
+        ingridients = self.get_ingridients()
+        nutricions = ingridients.aggregate(
+        total_protein=Cast(models.Sum(models.F('ingridient__protein') * models.F('amount')/self.weight), models.IntegerField()),
+        total_fat=Cast(models.Sum(models.F('ingridient__fat') * models.F('amount')/self.weight), models.IntegerField()),
+        total_carbohydrate=Cast(models.Sum(models.F('ingridient__carbohydrate') * models.F('amount')/self.weight), models.IntegerField()),
     )
         nutricions['kcal'] = nutricions['total_protein']*4+nutricions['total_fat']*9+nutricions['total_carbohydrate']*4
+        print(nutricions)
         return nutricions
     class Meta:
         verbose_name = "Продукт"
@@ -87,7 +90,11 @@ class Products(models.Model):
 class Ingridients(models.Model):
     name_ingridient = models.CharField(
         'название ингридиента', max_length=50, null=False, blank=False)
-
+    
+    protein = models.IntegerField('белки', default=0)
+    fat = models.IntegerField('жиры', default=0)
+    carbohydrate = models.IntegerField('углеводы', default=0)
+    calories = models.FloatField('каллории', default=0)
     def __str__(self):
         return f'{self.name_ingridient}'
 
@@ -109,10 +116,6 @@ class ProductIngredients(models.Model):
         ('tbsn', 'ст.л.'),
     )
     unit = models.CharField('ед. изм.', max_length=10, choices=choice)
-    protein = models.IntegerField('белки', default=0)
-    fat = models.IntegerField('жиры', default=0)
-    carbohydrate = models.IntegerField('углеводы', default=0)
-    calories = models.FloatField('каллории', default=0)
 
     def __str__(self):
         return f'{self.product.name_product}'
