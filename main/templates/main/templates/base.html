@@ -22,7 +22,7 @@
 </head>
 
 <body>
-    <style>
+    <!-- <style>
         .fade {
             opacity: 0;
             animation: fadeInOut 3s infinite;
@@ -50,7 +50,7 @@
                 /* Возвращаемся к начальной непрозрачности */
             }
         }
-    </style>
+    </style> -->
     <header class="d-flex justify-content-between bg-light ps-3 pe-3 sofia-sans-800">
         <div>
             <a href="{% url 'home'  %}"><img src="{{ MEDIA_URL }}/logo.png" width="128"></a>
@@ -85,12 +85,18 @@
                         {% else %}
                         <li><a class="dropdown-item" href="{% url 'profile' %}">профиль</a></li>
                         <li><a class="dropdown-item" href="{% url 'exit' %}">выйти</a></li>
+                        {% if not user.is_staff or not user.is_superuser %}
                         <li><a class="dropdown-item" href="{% url 'cart_view' %}">корзина</a></li>
+                        {% endif %}
+                        {% if user.is_staff or user.is_superuser %}
                         <li><a class="dropdown-item" href="{% url 'order_processing' %}">обработка заказов</a></li>
+                        <li><a class="dropdown-item" href="{% url 'moderate_comments' %}">модерация комментариев</a>
+                        </li>
+                        {% endif %}
                         <li>
                             <hr class="dropdown-divider">
                         </li>
-                        <li><a class="dropdown-item" href="#">Something else here</a></li>
+                        <!-- <li><a class="dropdown-item" href="#">Something else here</a></li> -->
                         {% endif %}
                     </ul>
                 </li>
@@ -113,7 +119,7 @@
     </div>
     <footer class="d-flex align-items-center d-flex justify-content-center border-top mt-1 bg-light"
         style="height: 15%;">
-        <div class="d-flex justify-content-around align-items-center w-75 fade rounded-3">
+        <div class="d-flex justify-content-around align-items-center w-75 rounded-3">
             <p class="text-info fw-bold">телефон:хххххххх</p>
             <h1 class="fw-bolder">KAРAMEЛЬKA</h1>
             <p class="text-info fw-bold">почта:xxx@mail.ru</p>

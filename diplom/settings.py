@@ -143,7 +143,7 @@ LOGOUT_REDIRECT_URL  = '/'
 EMAIL_USE_SSL = True
 EMAIL_HOST = 'smtp.mail.ru' 
 EMAIL_HOST_USER = 'erbolbaik@mail.ru' 
-EMAIL_HOST_PASSWORD = 'Tf4EKDcSdTqDkgJM6pys' 
+EMAIL_HOST_PASSWORD = 'kqhr0eEnyDBuARiUnGVN' 
 EMAIL_PORT = 465
 DEFAULT_FROM_EMAIL = 'erbolbaik@mail.ru'
 

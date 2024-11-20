@@ -6,6 +6,8 @@ from django.http import JsonResponse
 import json
 import uuid
 from .forms import CommentForm
+from django.contrib.auth.decorators import login_required
+from django.urls import reverse_lazy
 # Create your views here.
 
 
@@ -17,22 +19,24 @@ def home(request):
     }
     return render(request, 'main/templates/home.html', context=context)
 
+
 def product_detail(request, pk:int, name:str):
     object = Products.objects.get(id=pk)
     comments = object.comments.filter(parent__isnull=True,moderated=True)
     form = CommentForm(request.POST or None)
-    if object.id in set(request.user.orders.all().values_list('product',flat=True)):
-        if form.is_valid():
-            parent_id = request.POST.get('parent_id')
-            comment = form.save(commit=False)
-            comment.product = object
-            comment.user = request.user
-            if parent_id:
-                comment.parent = get_object_or_404(Comment, id=parent_id)
-            comment.save()
-            return redirect('product_detail', pk=object.id, name=object.name_product)
-    else:
-        messages.success(request, 'Вы не заказывали данный продукт')
+    if request.user.is_authenticated:
+        if object.id in set(request.user.orders.all().values_list('product',flat=True)):
+            if form.is_valid():
+                parent_id = request.POST.get('parent_id')
+                comment = form.save(commit=False)
+                comment.product = object
+                comment.user = request.user
+                if parent_id:
+                    comment.parent = get_object_or_404(Comment, id=parent_id)
+                comment.save()
+                return redirect('product_detail', pk=object.id, name=object.name_product)
+        else:
+            messages.success(request, 'Вы не заказывали данный продукт')
 
     context = {
         'title': object.name_product,
@@ -60,8 +64,6 @@ def main_page_objects(request):
 def constructor(request):
     bisquits = Bisquit.objects.all()
     fillings = Filling.objects.all()
-    data = request.POST or None
-    print(data)
     context = {
         'bisquits':bisquits,
         'fillings':fillings,
@@ -76,8 +78,8 @@ def constructor_ajax(request):
             data = json.loads(request.body)  # Загружаем JSON-данные
             # Обработка данных
             print(data)  # Выводим данные в консоль (или обрабатываем их)
-            print(uuid.uuid4().hex)
             CartConstructor.objects.create(user=request.user,uniq_id=uuid.uuid4().hex,data = data)
+            print('ok')
             
             return JsonResponse({'status': 'success', 'data': data})
         except json.JSONDecodeError:
@@ -91,7 +93,8 @@ def get_bisquit_description(request, bisquit_id):
         return JsonResponse({'description': bisquit.descrition})
     except Bisquit.DoesNotExist:
         return JsonResponse({'description': ''})
-    
+
+@login_required(login_url=reverse_lazy('auth'))    
 def cart_view(request):
     context ={
         'title':'корзины',
@@ -145,19 +148,21 @@ def cart_view(request):
             CartConstructor.objects.filter(id__in=select_consrt_cart).delete()
     return render(request, 'main/templates/cart.html', context=context)
 
-
+@login_required(login_url=reverse_lazy('auth'))
 def add_to_cart(request,product_id:int):
     user = UserProxy.objects.get(id=request.user.id)
     product = Products.objects.get(id=product_id)
     messages.success(request, user.add_cart(product=product))
     return redirect(request.META.get('HTTP_REFERER'))
 
+@login_required(login_url=reverse_lazy('auth'))
 def del_cart(request):
     request.user.carts.all().delete()
     request.user.carts_constr.all().delete()
     messages.success(request, 'Ваша корзина очищена')
     return redirect('/main')
 
+@login_required(login_url=reverse_lazy('auth'))
 def del_from_cart(request,type:str,cart_id:int):
     match type:
         case 'constr':
@@ -167,6 +172,7 @@ def del_from_cart(request,type:str,cart_id:int):
     messages.success(request, cart.remove_from_cart())
     return redirect('/main/cart_view/')
 
+@login_required(login_url=reverse_lazy('auth'))
 def add_quant_cart(request,type:str,cart_id:int):
     match type:
         case 'constr':

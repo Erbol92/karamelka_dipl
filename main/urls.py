@@ -18,5 +18,7 @@ urlpatterns = [
     path('order_processing/', views_admin.order_processing, name='order_processing'),
     path('order_ready/<int:pk>/', views_admin.order_ready, name='order_ready'),
     path('order_status/<int:pk>/', views_admin.order_status, name='order_status'),
+    path('moderate_comments/', views_admin.moderate_comments, name='moderate_comments'),
+    path('app_del_comments/<str:fun>/<int:pk>/', views_admin.app_del_comments, name='app_del_comments'),
 
 ]

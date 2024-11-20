@@ -22,7 +22,7 @@
     <button type="button" class="btn btn-info fw-bold ms-3" onclick="Hide('order_form')">заказы</button>
 </div>
 <div>
-    {% if user.carts.all %}
+    {% if user.carts.all or user.carts_constr.all %}
     <form action="" method="post" style="display: none;" id="cart_form">
         {% csrf_token %}
         <div class="row">
@@ -60,7 +60,7 @@
             <div class="col text-start" style="line-height: 0.7;">
                 <div class="d-flex">
                     <div>
-                        <input type="checkbox" name="select_consrt_cart" value={{cc.id}}>
+                        <input type="checkbox" name="select_consrt_cart" class="select_consrt_cart" value={{cc.id}}>
                     </div>
                     <div>
 
@@ -281,7 +281,7 @@
 </script>
 <script>
     // Получаем все чекбоксы и блок для отображения
-    const checkboxes = document.querySelectorAll('.select_cart');
+    const checkboxes = document.querySelectorAll('.select_cart,.select_consrt_cart');
     const infoBlock = document.getElementById('card');
     const btn_order = document.getElementById('btn_order');
 

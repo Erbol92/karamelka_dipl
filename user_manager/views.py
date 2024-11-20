@@ -12,6 +12,8 @@ from .token import account_activation_token
 from django.contrib.auth.models import User 
 from django.contrib.auth import get_user_model
 from .tasks import *
+from django.contrib.auth.decorators import login_required
+from django.urls import reverse_lazy
 # Create your views here.
 
 def auth(request):
@@ -66,7 +68,8 @@ def activate(request, uidb64, token):
         return redirect('/profile')
     else: 
         return HttpResponse('Ссылка активации недействительна!') 
-    
+
+@login_required(login_url=reverse_lazy('auth'))    
 def profile(request):
     profile_obj, created = Profile.objects.get_or_create(prof=request.user)
     form = ProfileForm(request.POST or None, request.FILES or None, instance=profile_obj, user=request.user)
