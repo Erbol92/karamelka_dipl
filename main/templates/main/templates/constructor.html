@@ -1,123 +1,103 @@
 {% extends 'main/templates/base.html' %}
 {% load static %}
 {% block content %}
-<script type="importmap">
-    {
-        "imports": {
-            "three": "https://cdn.jsdelivr.net/npm/three@0.167.1/build/three.module.js",
-            "FBXLoader": "https://cdn.jsdelivr.net/npm/three@0.167.1/examples/jsm/loaders/FBXLoader.js",
-        }
-    }
-    </script>
-<script type="module">
-    import * as THREE from 'three';
-    import { DragControls } from '{% static "js/DragControls.js" %}';
-    import { OrbitControls } from '{% static "js/OrbitControls.js" %}';
-    import { FBXLoader } from 'FBXLoader';
+<style>
+    body {
+    font-family: Arial, sans-serif;
+}
 
-    const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-    const renderer = new THREE.WebGLRenderer();
-    renderer.setSize(window.innerWidth, window.innerHeight);
-    document.body.appendChild(renderer.domElement);
+.container {
+    display: flex;
+    justify-content: space-around;
+    margin: 20px;
+}
 
-    // Добавление источника света
-    const ambientLight = new THREE.AmbientLight(0x404040); // Мягкий белый свет
-    scene.add(ambientLight);
+.shape {
+    width: 100px;
+    height: 50px;
+    background-color: lightblue;
+    border: 2px solid blue;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    user-select: none;
+}
 
-    const directionalLight = new THREE.DirectionalLight(0xffffff, 1); // Направленный свет
-    directionalLight.position.set(5, 10, 7.5).normalize(); // Позиция света
-    scene.add(directionalLight);
+#cylinder {
+    border-radius: 25px; /* Для цилиндра */
+}
 
-    const planeGeometry = new THREE.PlaneGeometry(10, 10);
-    const planeMaterial = new THREE.MeshStandardMaterial({ color: 0xaaaaaa, side: THREE.DoubleSide });
-    const plane = new THREE.Mesh(planeGeometry, planeMaterial);
-    plane.rotation.x = Math.PI / 2;
-    scene.add(plane);
+.drop-area {
+    width: 400px;
+    height: 400px;
+    border: 2px dashed gray;
+    position: relative;
+    margin: 20px auto;
+    text-align: center;
+    line-height: 400px;
+    color: gray;
+}
 
-    function createSquare() {
-        const geometry = new THREE.BoxGeometry(1, 1, 1);
-        const material = new THREE.MeshStandardMaterial({ color: 0x00ff00, flatShading: true }); // Используем MeshStandardMaterial
-        const square = new THREE.Mesh(geometry, material);
-        square.position.set(Math.random() * 5 - 2.5, 0.5, 0);
-        scene.add(square);
-        return square;
-    }
+</style>
+<div class="container">
+    <div class="shape" id="rectangle" draggable="true">Прямоугольник</div>
+    <div class="shape" id="cylinder" draggable="true">Цилиндр</div>
+</div>
+<div class="drop-area" id="dropArea">Перетащите сюда</div>
 
-    function createCylinder() {
-        const geometry = new THREE.CylinderGeometry(1, 1, 1, 32);
-        const material = new THREE.MeshStandardMaterial({ color: 0xff0000, flatShading: true }); // Используем MeshStandardMaterial
-        const cylinder = new THREE.Mesh(geometry, material);
-        cylinder.position.set(Math.random() * 5 - 2.5, 0.5, 0);
-        scene.add(cylinder);
-        return cylinder;
-    }
+<script>
+    const shapes = document.querySelectorAll('.shape');
+const dropArea = document.getElementById('dropArea');
 
-    const shapes = [];
-    shapes.push(createSquare());
-    shapes.push(createCylinder());
+shapes.forEach(shape => {
+    shape.addEventListener('dragstart', dragStart);
+});
 
-    camera.position.set(0, 5, 10);
-    camera.lookAt(0, 0, 0);
+dropArea.addEventListener('dragover', dragOver);
+dropArea.addEventListener('drop', drop);
 
-    const controls = new OrbitControls(camera, renderer.domElement);
-    controls.enableDamping = true;
-    controls.dampingFactor = 0.25;
-    controls.screenSpacePanning = false;
+function dragStart(e) {
+    e.dataTransfer.setData('text/plain', e.target.id);
+}
 
-    const dragControls = new DragControls(shapes, camera, renderer.domElement);
-    let originalPosition;
+function dragOver(e) {
+    e.preventDefault();
+}
 
-    dragControls.addEventListener('dragstart', function (event) {
-        controls.enabled = false;
-        originalPosition = event.object.position.clone(); // Сохраняем оригинальное положение
-    });
+function drop(e) {
+    e.preventDefault();
+    const shapeId = e.dataTransfer.getData('text/plain');
+    const shape = document.getElementById(shapeId).cloneNode(true);
+    shape.style.position = 'absolute';
+    shape.style.left = `${e.offsetX - 50}px`; // Центрируем по X
+    shape.style.top = `${e.offsetY - 25}px`; // Центрируем по Y
+    dropArea.appendChild(shape);
 
-    dragControls.addEventListener('dragend', function () {
-        controls.enabled = true;
-    });
+    // Добавляем возможность изменения размера
+    shape.addEventListener('mousedown', initResize);
+}
 
-    function checkContact(object) {
-        for (let i = 0; i < shapes.length; i++) {
-            if (shapes[i] !== object) {
-                const distance = object.position.distanceTo(shapes[i].position);
-                const minDistance = (object.geometry.parameters.width || 1) + (shapes[i].geometry.parameters.width || 1) * 0.5; // Уменьшаем зазор
+function initResize(e) {
+    const shape = e.target;
+    const startX = e.clientX;
+    const startY = e.clientY;
+    const startWidth = parseInt(document.defaultView.getComputedStyle(shape).width, 10);
+    const startHeight = parseInt(document.defaultView.getComputedStyle(shape).height, 10);
 
-                // Проверка по высоте
-                const heightDifference = Math.abs(object.position.y - shapes[i].position.y);
-                const minHeightDistance = (object.geometry.parameters.height || 1) + (shapes[i].geometry.parameters.height || 1) * 0.5;
-
-                if (distance < minDistance && heightDifference < minHeightDistance) {
-                    return { collision: true, otherObject: shapes[i] }; // Возвращаем объект, с которым произошло соприкосновение
-                }
-            }
-        }
-        return { collision: false }; // Нет соприкосновения
+    function resize(e) {
+        shape.style.width = `${startWidth + e.clientX - startX}px`;
+        shape.style.height = `${startHeight + e.clientY - startY}px`;
     }
 
-    dragControls.addEventListener('drag', function (event) {
-        const contact = checkContact(event.object);
-        if (contact.collision) {
-            const otherObject = contact.otherObject;
-            const direction = new THREE.Vector3().subVectors(event.object.position, otherObject.position).normalize(); // Направление от другого объекта
-            const minDistance = (event.object.geometry.parameters.width || 1) + (otherObject.geometry.parameters.width || 1) * 0.5; // Уменьшаем зазор
-
-            // Устанавливаем позицию объекта на минимальном расстоянии от другого объекта
-            event.object.position.copy(otherObject.position).add(direction.multiplyScalar(minDistance));
-
-            // Устанавливаем высоту объекта на верхнюю часть другого объекта
-            event.object.position.y = otherObject.position.y + (otherObject.geometry.parameters.height || 1) * 0.5 + (event.object.geometry.parameters.height || 1) * 0.5;
-        }
-    });
-
-    function animate() {
-        requestAnimationFrame(animate);
-        controls.update();
-        renderer.render(scene, camera);
+    function stopResize() {
+        window.removeEventListener('mousemove', resize);
+        window.removeEventListener('mouseup', stopResize);
     }
-    animate();
+
+    window.addEventListener('mousemove', resize);
+    window.addEventListener('mouseup', stopResize);
+}
+
 </script>
-
-
-
 {% endblock %}

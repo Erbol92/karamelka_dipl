@@ -1,7 +1,6 @@
 {% extends 'main/templates/base.html' %}
 {% load static %}
 {% load crispy_forms_tags %}
-{% load custom_filters %}
 {% block content %}
 <style>
     .step {
@@ -22,22 +21,12 @@
 <button id="createSteps" class="btn btn-sm btn-success">Создать слои</button>
 
 <div id="multiStepForm" class="mb-3" style="margin-top: 20px;">
-    <div class="d-flex">
-        <div class="w-75">
-            <div id="stepsContainer"></div>
-            <button type="button" id="prevBtn" style="display:none;" class="btn btn-sm btn-primary">Назад</button>
-            <button type="button" id="nextBtn" style="display:none;" class="btn btn-sm btn-primary">Далее</button>
-            <button type="button" id="submitBtn" style="display:none;" class="btn btn-sm btn-primary">добавить в
-                корзину
-            </button>
-            <button type="button" id="buildCacke" style="display:none;" class="btn btn-sm btn-primary">показать модель
-            </button>
-        </div>
-        <div id="info">
-
-        </div>
-    </div>
-
+    <div id="stepsContainer"></div>
+    <button type="button" id="prevBtn" style="display:none;" class="btn btn-sm btn-primary">Назад</button>
+    <button type="button" id="nextBtn" style="display:none;" class="btn btn-sm btn-primary">Далее</button>
+    <button type="button" id="submitBtn" style="display:none;" class="btn btn-sm btn-primary">добавить в
+        корзину</button>
+    <button type="button" id="buildCacke" style="display:none;" class="btn btn-sm btn-primary">показать модель</button>
 </div>
 <div id="container" class="mt-3"></div>
 
@@ -45,7 +34,6 @@
     const stepsContainer = document.getElementById('stepsContainer');
     const jsonString = '{}';
     const jsonObject = JSON.parse(jsonString);
-    const ccal_price_w = {}
     let currentStep = 0;
     let totalSteps = 0;
 
@@ -91,36 +79,24 @@
                     </label>
                     <div id="inputFields_${i}" class="div_input" style="display: none;" class="mt-3 mb-3">
                         <div id="squareFields_${i}" style="display: none;">
-                            <label for="squareSide_${i}">Введите сторону, cм:</label>
-                            <select id="squareSide_${i}" name="squareSide_${i}">
-                                <option value="20">20</option>
-                                <option value="30">30</option>
-                                <option value="40">40</option>
-                            </select>
+                            <label for="squareSide_${i}">Сторона квадрата:</label>
+                            <input type="number" id="squareSide_${i}" name="squareSide_${i}" placeholder="Введите сторону" min='20' max='70'>
                         </div>
                         <div id="circleFields_${i}" style="display: none;">
-                            <label for="circleRadius_${i}">Введите диматер, см:</label>
-                            <select id="circleRadius_${i}" name="circleRadius_${i}">
-                                <option value="20">20</option>
-                                <option value="30">30</option>
-                                <option value="40">40</option>
-                            </select>
+                            <label for="circleRadius_${i}">Радиус круга:</label>
+                            <input type="number" id="circleRadius_${i}" name="circleRadius_${i}" placeholder="Введите радиус" min='10' max='70'>
                         </div>
                         <div id="rectangleFields_${i}" style="display: none;">
-                            <label for="rectangleDimensions_${i}">Размеры прямоугольника, см (длина, ширина):</label>
-                            <select id="rectangleDimensions_${i}" name="rectangleDimensions_${i}">
-                                <option value="20x30">20 x 30</option>
-                                <option value="40x50">40 x 50</option>
-                                <option value="60x70">60 x 70</option>
-                                <option value="30x40">30 x 40</option>
-                                <option value="50x60">50 x 60</option>
-                            </select>
+                            <label for="rectangleWidth_${i}">Ширина прямоугольника:</label>
+                            <input type="number" id="rectangleWidth_${i}" name="rectangleWidth_${i}" placeholder="Введите ширину" min='20' max='70'>
+                            <label for="rectangleHeight_${i}">Длина прямоугольника:</label>
+                            <input type="number" id="rectangleHeight_${i}" name="rectangleHeight_${i}" placeholder="Введите длину" min='20' max='70'>
                         </div>
                     </div>
                     
                     <div class="d-flex mt-3 mb-2 justify-content-between m-auto w-75">
                     {% for bisquit in bisquits %}
-                    <button type="button" class="btn btn-outline-dark" title="{{bisquit.descrition}} \n{{bisquit.calorie}}Ккал/100гр \n{{bisquit.weight}}кг/м3 \n{{bisquit.price}}руб./кг" onclick="selectBisquit(JSON.stringify({{ bisquit.bisquit_to_dict }}),${i})">{{bisquit.title}}</button>
+                    <button type="button" class="btn btn-outline-dark" title="{{bisquit.descrition}}" onclick="selectBisquit({{bisquit.id}},${i})">{{bisquit.title}}</button>
                     {% endfor %}
                     </div>
                     <input type="hidden" name="selected_bisquit_${i}" class="selected_bisquit" id="selected_bisquit_${i}">
@@ -131,7 +107,7 @@
                     <label for="input${i}">выберите начинку:</label>
                     <div class="d-flex mt-2 mb-2 justify-content-between m-auto w-75">
                     {% for filling in fillings %}
-                    <button type="button" class="btn btn-outline-dark" title="{{filling.descrition}} \n{{filling.calorie}}Ккал/100гр \n{{filling.weight}}кг/м3 \n{{filling.price}}руб./кг" onclick="selectFilling({{filling.id}},${i})">{{filling.title}}</button>
+                    <button type="button" class="btn btn-outline-dark" title="{{filling.descrition}}" onclick="selectFilling({{filling.id}},${i})">{{filling.title}}</button>
                     {% endfor %}
                     </div>
                     <input type="hidden" name="selected_filling_${i}" id="selected_filling_${i}">
@@ -182,9 +158,6 @@
         if (currentStep < totalSteps - 1) {
             currentStep++;
             showStep(currentStep);
-            console.log(jsonObject)
-            info = document.getElementById(`info`)
-            info.innerHTML = ''
         }
     });
 
@@ -209,56 +182,19 @@
         }
     }
 
-    function selectBisquit(bisquit, step) {
+    function selectBisquit(id, step) {
         // Устанавливаем значение выбранного бисквита в скрытое поле
-        bisquit = JSON.parse(bisquit)
-        document.getElementById(`selected_bisquit_${step}`).value = bisquit.id;
+        document.getElementById(`selected_bisquit_${step}`).value = id;
         document.getElementById('nextBtn').style.display = 'inline';
-        jsonObject[step]['bisquit'] = bisquit.id;
-        console.log(getSelectedValue(step))
-        ccal_price_w[step]={}
-        ccal_price_w[step]['weight']= getSelectedValue(step)*bisquit.weight
-        ccal_price_w[step]['ccal'] = ccal_price_w[step]['weight']*bisquit.calorie*10
-        ccal_price_w[step]['price'] = ccal_price_w[step]['weight']*bisquit.price
-        console.log(ccal_price_w)
-        info = document.getElementById(`info`)
-        info.innerHTML =
-        `
-        <p>вес: ${ccal_price_w[step]['weight'].toFixed(2)} кг.</p>
-        <p>ккал: ${ccal_price_w[step]['ccal'].toFixed(2)}</p>
-        <p>цена: ${ccal_price_w[step]['price'].toFixed(2)} руб.</p>
-        `
-    }
+        jsonObject[step]['bisquit'] = id
 
+    }
     function selectFilling(id, step) {
         // Устанавливаем значение выбранной начинки в скрытое поле
         document.getElementById(`selected_filling_${step}`).value = id;
         jsonObject[step]['filling'] = id
     }
-    function getSelectedValue(step) {
-        // Проверяем, какое поле ввода отображается
-        const squareFields = document.getElementById(`squareFields_${step}`);
-        const circleFields = document.getElementById(`circleFields_${step}`);
-        const rectangleFields = document.getElementById(`rectangleFields_${step}`);
 
-        let selectedValue;
-
-        if (squareFields.style.display === 'block') {
-            // Если квадратные поля отображаются, получаем значение из соответствующего select
-            const squareSelect = document.getElementById(`squareSide_${step}`);
-            selectedValue = squareSelect.value**3;
-        } else if (circleFields.style.display === 'block') {
-            // Если круговые поля отображаются, получаем значение из соответствующего select
-            const circleSelect = document.getElementById(`circleRadius_${step}`);
-            selectedValue = Math.PI*circleSelect.value**3/12;
-        } else if (rectangleFields.style.display === 'block') {
-            // Если прямоугольные поля отображаются, получаем значение из соответствующего select
-            const [width, depth] = document.getElementById(`rectangleDimensions_${step}`).value.split('x').map(value => parseFloat(value.trim()));
-            selectedValue = width*2*depth**2/3;
-        }
-
-        return selectedValue/1000000; // Возвращаем выбранное значение
-    }
 </script>
 <script>
     function showInputFields(id) {
@@ -386,30 +322,24 @@
             if (selectedShape === 'circle') {
                 dimensions.radius = parseFloat(document.getElementById(`circleRadius_${i}`).value);
                 dimensions.height = dimensions.radius / 3; // Высота слоя
-<!--                document.getElementById(`rectangleWidth_${i}`).disabled = true;-->
-<!--                document.getElementById(`rectangleHeight_${i}`).disabled = true;-->
-<!--                document.getElementById(`squareSide_${i}`).disabled = true;-->
+                document.getElementById(`rectangleWidth_${i}`).disabled = true;
+                document.getElementById(`rectangleHeight_${i}`).disabled = true;
+                document.getElementById(`squareSide_${i}`).disabled = true;
                 jsonObject[i].size = { 'r': dimensions.radius, 'h': dimensions.height }
             } else if (selectedShape === 'square') {
                 dimensions.size = parseFloat(document.getElementById(`squareSide_${i}`).value);
                 dimensions.height = dimensions.size; // Высота слоя
-<!--                document.getElementById(`rectangleWidth_${i}`).disabled = true;-->
-<!--                document.getElementById(`rectangleHeight_${i}`).disabled = true;-->
-<!--                document.getElementById(`circleRadius_${i}`).disabled = true;-->
+                document.getElementById(`rectangleWidth_${i}`).disabled = true;
+                document.getElementById(`rectangleHeight_${i}`).disabled = true;
+                document.getElementById(`circleRadius_${i}`).disabled = true;
                 jsonObject[i].size = { 'a': dimensions.size }
             } else if (selectedShape === 'rectangle') {
-                const selectedValue = document.getElementById(`rectangleDimensions_${i}`).value;
-                // Разделяем строку на ширину и длину
-                const [width, depth] = selectedValue.split('x').map(value => parseFloat(value.trim()));
-                // Присваиваем значения в объект dimensions
-                dimensions.width = width;
-                dimensions.depth = depth; // Высота слоя
-                dimensions.height = dimensions.depth * (1 / 3); // Вычисляем высоту
-                // Отключаем другие элементы
+                dimensions.width = parseFloat(document.getElementById(`rectangleWidth_${i}`).value);
+                dimensions.depth = parseFloat(document.getElementById(`rectangleHeight_${i}`).value);// Высота слоя
+                dimensions.height = dimensions.depth * 1 / 3;
                 document.getElementById(`circleRadius_${i}`).disabled = true;
                 document.getElementById(`squareSide_${i}`).disabled = true;
-                // Присваиваем размеры в jsonObject
-                jsonObject[i].size = { 'a': dimensions.width, 'b': dimensions.depth, 'c': dimensions.height };
+                jsonObject[i].size = { 'a': dimensions.width, 'b': dimensions.depth, 'c': dimensions.height }
             }
 
             // Установка позиции слоя на основе общей высоты
@@ -422,27 +352,6 @@
             jsonObject[1]['guest'] = 10
         console.log(jsonObject[1])
         console.log(JSON.stringify(jsonObject))
-
-        // Инициализируем переменные для суммирования
-        let totalWeight = 0;
-        let totalCcal = 0;
-        let totalPrice = 0;
-
-        // Перебираем объект и суммируем значения
-        for (const key in ccal_price_w) {
-            if (ccal_price_w.hasOwnProperty(key)) {
-                totalWeight += ccal_price_w[key].weight;
-                totalCcal += ccal_price_w[key].ccal;
-                totalPrice += ccal_price_w[key].price;
-            }
-        }
-        info = document.getElementById(`info`)
-        info.innerHTML =
-        `
-        <p>вес: ${totalWeight.toFixed(2)} кг.</p>
-        <p>ккал: ${totalCcal.toFixed(2)}</p>
-        <p>цена: ${totalPrice.toFixed(2)} руб.</p>
-        `
     });
 
 </script>
@@ -468,9 +377,6 @@
     }
 </script>
 
-<script>
-
-</script>
 <style>
     footer {
         position: fixed;

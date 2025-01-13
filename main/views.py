@@ -8,6 +8,7 @@ import uuid
 from .forms import CommentForm
 from django.contrib.auth.decorators import login_required
 from django.urls import reverse_lazy
+from diplom.settings import coefficient
 # Create your views here.
 
 
@@ -68,6 +69,7 @@ def constructor(request):
         'bisquits':bisquits,
         'fillings':fillings,
         'title': 'конструктор',
+        'coefficient':coefficient,
     }
     return render(request, 'main/templates/constructor_2.html', context=context)
 

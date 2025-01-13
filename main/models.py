@@ -7,7 +7,6 @@ from django.core.files.base import ContentFile
 from django.contrib.auth.models import User
 from diplom.settings import MEDIA_ROOT
 from django.shortcuts import reverse
-from math import prod
 from diplom.settings import coefficient
 import json
 from datetime import datetime
@@ -161,11 +160,22 @@ class Bisquit(models.Model):
     weight = models.IntegerField('Вес кг/м3', default=0)
     price = models.FloatField('цена за кг', default=0)
 
+    def bisquit_to_dict(self):
+        return json.dumps({
+            'id':self.id,
+            'calorie': self.calorie,
+            'weight': self.weight,
+            'price': self.price,
+        })
+
     def __str__(self):
         return f'{self.title}'
+
     class Meta:
         verbose_name = 'Бисквит'
         verbose_name_plural = 'Бисквиты'
+
+
 
 class Filling(models.Model):
     title = models.CharField('Название', max_length=30)
@@ -290,30 +300,34 @@ def present_data(obj):
                     filling = Filling.objects.get(id=dat.get('filling'))
                     present['filling'] = filling
 
-        full_weight,ful_calorie = 0, 0
+        full_weight,ful_calorie, total_v = 0, 0, 0
         for layer in present['layers']:
             val = 0
+            print(layer)
             match layer['form']:
                 case 'круг':
-                    val = 3.14*layer['size']['радиус']
+                    val = 3.14*layer['size']['радиус']**3/12
                 case 'квадрат':
-                    val = 1
+                    val = layer['size']['длина']**3
                 case 'прямоугольник':
                     val = 1
-            v = f'{val*prod(layer['size'].values()):.2f}'
-            
-            layer['weight'] = float(v)*layer['bisquit'].weight/1000000
+            v = val/1000000
+            total_v += v
+            layer['weight'] = float(v)*layer['bisquit'].weight
             price += layer['weight']*layer['bisquit'].price
+            print(price)
             layer['calorie'] = layer['weight']*10*layer['bisquit'].calorie
             full_weight += layer['weight']
             ful_calorie += layer['calorie']
         present['full_weight'] = f'{full_weight:.2f}'
         filling_ccal,filling_weight = 0, 0
         if present.get('filling'):
-            filling_weight = float(present['full_weight'])*0.2
+            filling_weight = 0.1*total_v*present['filling'].weight
+            print(present['filling'].price, filling_weight)
             price += present['filling'].price*filling_weight
             filling_ccal = filling_weight*present['filling'].calorie*10
-        obj.price = int(price*coefficient)
+        # obj.price = int(price*coefficient)
+        obj.price=price
         obj.save()
         present['ful_calorie'] = f'{ful_calorie + filling_ccal:.2f}'
         present['full_weight'] = f'{full_weight+filling_weight:.2f}'
