@@ -9,6 +9,7 @@ from .forms import CommentForm
 from django.contrib.auth.decorators import login_required
 from django.urls import reverse_lazy
 from diplom.settings import coefficient
+from django.db.models import Max
 # Create your views here.
 
 
@@ -96,11 +97,11 @@ def get_bisquit_description(request, bisquit_id):
     except Bisquit.DoesNotExist:
         return JsonResponse({'description': ''})
 
-@login_required(login_url=reverse_lazy('auth'))    
+@login_required(login_url=reverse_lazy('auth'))
 def cart_view(request):
-    context ={
-        'title':'корзины',
-        'user' : UserProxy.objects.get(pk=request.user.pk),
+    context = {
+        'title': 'корзины',
+        'user': UserProxy.objects.get(pk=request.user.pk),
         'orders': request.user.orders.all()
     }
     data = request.POST or None
@@ -108,16 +109,16 @@ def cart_view(request):
         print(data)
         select_cart = data.getlist('select_cart')
         select_consrt_cart = data.getlist('select_consrt_cart')
-        place,pay = {},{}
+        place, pay = {}, {}
         delivery = data.get('delivery')
         if delivery:
             place['delivery'] = delivery
-            if delivery =='доставка':
+            if delivery == 'доставка':
                 address = data.get('address')
                 print(address)
                 if address:
                     place['address'] = address
-                    
+
             place = json.dumps(place, indent=4)
             print(place)
         payment = data.get('payment')
@@ -125,7 +126,7 @@ def cart_view(request):
             pay['payment'] = payment
             card_number = data.get('cardNumber')
             if payment == 'безналичная':
-                expiry_date= data.get('expiryDate')
+                expiry_date = data.get('expiryDate')
                 cvv = data.get('cvv')
                 # pay['payment'] = {payment:{'card_number':card_number,
                 #                         'expiry_date':expiry_date,
@@ -133,22 +134,33 @@ def cart_view(request):
                 #                         }
                 #                 }
             pay = json.dumps(pay, indent=4)
+
+        # Получаем максимальный номер заказа для текущего пользователя
+        max_order_num = Order.objects.filter(user=request.user).aggregate(Max('num_order'))['num_order__max'] or 0
+        current_order_num = max_order_num + 1
+
         if select_cart:
             orders = []
             for cart_id in select_cart:
                 cart = Cart.objects.get(id=int(cart_id))
-                orders.append(Order(user=request.user,product=cart.product,quantity=cart.quantity,place=place,payment=pay))
+                orders.append(
+                    Order(user=request.user, product=cart.product, quantity=cart.quantity, place=place, payment=pay,
+                          num_order=current_order_num))
             Order.objects.bulk_create(orders)
             Cart.objects.filter(id__in=select_cart).delete()
-        
+
         if select_consrt_cart:
             orders = []
             for cart_id in select_consrt_cart:
                 cart = CartConstructor.objects.get(id=int(cart_id))
-                orders.append(Order(user=request.user,consrt=cart.data,quantity=cart.quantity,place=place,payment=pay))
+                orders.append(
+                    Order(user=request.user, consrt=cart.data, quantity=cart.quantity, place=place, payment=pay,
+                          num_order=current_order_num))
             Order.objects.bulk_create(orders)
             CartConstructor.objects.filter(id__in=select_consrt_cart).delete()
+
     return render(request, 'main/templates/cart.html', context=context)
+
 
 @login_required(login_url=reverse_lazy('auth'))
 def add_to_cart(request,product_id:int):

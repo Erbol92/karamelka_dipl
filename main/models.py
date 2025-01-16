@@ -190,6 +190,13 @@ class Filling(models.Model):
         verbose_name = 'Начинка'
         verbose_name_plural = 'Начинки'
 
+    def filling_to_dict(self):
+        return json.dumps({
+            'id':self.id,
+            'calorie': self.calorie,
+            'weight': self.weight,
+            'price': self.price,
+        })
 class CartConstructor(models.Model):
     user = models.ForeignKey(
         User, verbose_name='пользователь', on_delete=models.CASCADE, null=False, related_name='carts_constr')
@@ -225,6 +232,7 @@ class CartConstructor(models.Model):
 class Order(models.Model):
     user = models.ForeignKey(
         User, verbose_name='пользователь', on_delete=models.CASCADE, null=False, related_name='orders')
+    num_order = models.IntegerField('№ заказа',default=0)
     product = models.ForeignKey(Products,verbose_name='товар', on_delete=models.CASCADE,null=True,blank=True)
     consrt = models.JSONField('Заказ из конструктора',null=True,blank=True)  # Поле для хранения JSON-данных
     quantity = models.PositiveIntegerField('Количество',default=0)
@@ -265,7 +273,8 @@ class Order(models.Model):
 
 def present_data(obj):
         def replace_keys(original_dict, replacement_dict):
-            return {replacement_dict.get(key, key): value for key, value in original_dict.items()}
+            if original_dict:
+                return {replacement_dict.get(key, key): value for key, value in original_dict.items()}
         replacement_size = {
             'a': 'длина',
             'b': 'ширина',
@@ -322,8 +331,8 @@ def present_data(obj):
         present['full_weight'] = f'{full_weight:.2f}'
         filling_ccal,filling_weight = 0, 0
         if present.get('filling'):
-            filling_weight = 0.1*total_v*present['filling'].weight
-            print(present['filling'].price, filling_weight)
+            filling_weight = 0.1*full_weight
+            # *present['filling'].weight
             price += present['filling'].price*filling_weight
             filling_ccal = filling_weight*present['filling'].calorie*10
         # obj.price = int(price*coefficient)

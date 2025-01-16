@@ -24,4 +24,34 @@
     });
 
 </script>
+ <script>
+        const phoneInput = document.getElementById('id_phone');
+
+        phoneInput.addEventListener('input', function (e) {
+            // Удаляем все символы, кроме цифр
+            let input = e.target.value.replace(/\D/g, '');
+
+            // Ограничиваем до 11 цифр (1 для кода страны + 10 для номера)
+            if (input.length > 11) {
+                input = input.slice(0, 11);
+            }
+
+            // Форматируем номер
+            let formattedInput = '+7';
+            if (input.length > 1) {
+                formattedInput += '-' + input.slice(1, 4); // Код региона
+            }
+            if (input.length > 4) {
+                formattedInput += '-' + input.slice(4, 7); // Первые три цифры номера
+            }
+            if (input.length > 7) {
+                formattedInput += '-' + input.slice(7, 9); // Первые две цифры после
+            }
+            if (input.length > 9) {
+                formattedInput += '-' + input.slice(9, 11); // Последние две цифры
+            }
+
+            e.target.value = formattedInput;
+        });
+    </script>
 {% endblock %}

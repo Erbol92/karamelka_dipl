@@ -33,8 +33,11 @@
             <button type="button" id="buildCacke" style="display:none;" class="btn btn-sm btn-primary">показать модель
             </button>
         </div>
-        <div id="info">
-
+        <div class="d-flex">
+            <div id="info">
+            </div>
+            <div id="info_filling">
+            </div>
         </div>
     </div>
 
@@ -131,7 +134,7 @@
                     <label for="input${i}">выберите начинку:</label>
                     <div class="d-flex mt-2 mb-2 justify-content-between m-auto w-75">
                     {% for filling in fillings %}
-                    <button type="button" class="btn btn-outline-dark" title="{{filling.descrition}} \n{{filling.calorie}}Ккал/100гр \n{{filling.weight}}кг/м3 \n{{filling.price}}руб./кг" onclick="selectFilling({{filling.id}},${i})">{{filling.title}}</button>
+                    <button type="button" class="btn btn-outline-dark" title="{{filling.descrition}} \n{{filling.calorie}}Ккал/100гр \n{{filling.weight}}кг/м3 \n{{filling.price}}руб./кг" onclick="selectFilling(JSON.stringify({{ filling.filling_to_dict }}),${i})">{{filling.title}}</button>
                     {% endfor %}
                     </div>
                     <input type="hidden" name="selected_filling_${i}" id="selected_filling_${i}">
@@ -215,7 +218,6 @@
         document.getElementById(`selected_bisquit_${step}`).value = bisquit.id;
         document.getElementById('nextBtn').style.display = 'inline';
         jsonObject[step]['bisquit'] = bisquit.id;
-        console.log(getSelectedValue(step))
         ccal_price_w[step]={}
         ccal_price_w[step]['weight']= getSelectedValue(step)*bisquit.weight
         ccal_price_w[step]['ccal'] = ccal_price_w[step]['weight']*bisquit.calorie*10
@@ -230,10 +232,37 @@
         `
     }
 
-    function selectFilling(id, step) {
+    function selectFilling(filling, step) {
         // Устанавливаем значение выбранной начинки в скрытое поле
-        document.getElementById(`selected_filling_${step}`).value = id;
-        jsonObject[step]['filling'] = id
+        filling = JSON.parse(filling)
+
+        info_filling = document.getElementById(`info_filling`)
+        document.getElementById(`selected_filling_${step}`).value = filling.id;
+        jsonObject[step]['filling'] = filling.id
+        ccal_price_w[step]={}
+        // Инициализируем переменные для суммирования
+        let totalWeight = 0;
+
+        // Перебираем объект и суммируем значения
+        for (const key in ccal_price_w) {
+
+            if (ccal_price_w.hasOwnProperty(key)) {
+                if (ccal_price_w[key].weight) {
+                totalWeight += ccal_price_w[key].weight;
+                console.log(ccal_price_w[key].weight)}
+            }
+        }
+        ccal_price_w[step]['weight']= totalWeight*0.1
+        ccal_price_w[step]['ccal'] = totalWeight*filling.calorie
+        ccal_price_w[step]['price'] = totalWeight*0.1*filling.price
+        console.log(ccal_price_w[step])
+        info_filling.innerHTML =
+        `
+        <p>начинка</p>
+        <p>вес: ${ccal_price_w[step]['weight'].toFixed(2)} кг.</p>
+        <p>ккал: ${ccal_price_w[step]['ccal'].toFixed(2)}</p>
+        <p>цена: ${ccal_price_w[step]['price'].toFixed(2)} руб.</p>
+        `
     }
     function getSelectedValue(step) {
         // Проверяем, какое поле ввода отображается
@@ -439,6 +468,7 @@
         info = document.getElementById(`info`)
         info.innerHTML =
         `
+        <p>общие данные</p>
         <p>вес: ${totalWeight.toFixed(2)} кг.</p>
         <p>ккал: ${totalCcal.toFixed(2)}</p>
         <p>цена: ${totalPrice.toFixed(2)} руб.</p>
@@ -448,16 +478,21 @@
 </script>
 
 <script>
-    const smbBtn = document.getElementById('submitBtn')
+    const smbBtn = document.getElementById('submitBtn');
     smbBtn.onclick = function () {
-        fetch("{{ request.scheme }}://{{ request.META.HTTP_HOST }}{% url 'constructor_ajax' %}", {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': `{{ csrf_token }}`,
-            },
-            body: JSON.stringify(jsonObject),
-        })
+        // Show confirmation dialog
+        const userConfirmed = confirm("После отправки торт изменить нелья, Вы уверенны?");
+
+        // If the user clicks "OK", proceed with the fetch request
+        if (userConfirmed) {
+            fetch("{{ request.scheme }}://{{ request.META.HTTP_HOST }}{% url 'constructor_ajax' %}", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': `{{ csrf_token }}`,
+                },
+                body: JSON.stringify(jsonObject),
+            })
             .then(response => response.json())
             .then(data => {
                 console.log('Success:', data);
@@ -465,8 +500,13 @@
             .catch((error) => {
                 console.error('Error:', error);
             });
+        } else {
+            // User clicked "Cancel", do nothing
+            console.log('Submission canceled by the user.');
+        }
     }
 </script>
+
 
 <script>
 

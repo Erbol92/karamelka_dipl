@@ -33,7 +33,7 @@
         <div class="product-tile-info">
             <h3>{{object}}</h3>
             <p>{{object.description|truncatechars:150|linebreaks}}</p>
-            <p><strong>Цена: {{object.price}}</strong></p>
+            <p><strong>Цена: {{object.price}} </strong>руб.</p>
         </div>
         <div class="product-tile-actions">
             <a href="{% url 'add_to_cart' product_id=object.id %}" class="add-to-cart">добавить в корзину</a>
