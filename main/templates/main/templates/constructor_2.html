@@ -221,7 +221,7 @@
         ccal_price_w[step]={}
         ccal_price_w[step]['weight']= getSelectedValue(step)*bisquit.weight
         ccal_price_w[step]['ccal'] = ccal_price_w[step]['weight']*bisquit.calorie*10
-        ccal_price_w[step]['price'] = ccal_price_w[step]['weight']*bisquit.price
+        ccal_price_w[step]['price'] = Math.ceil(ccal_price_w[step]['weight']*bisquit.price)
         console.log(ccal_price_w)
         info = document.getElementById(`info`)
         info.innerHTML =
@@ -254,7 +254,7 @@
         }
         ccal_price_w[step]['weight']= totalWeight*0.1
         ccal_price_w[step]['ccal'] = totalWeight*filling.calorie
-        ccal_price_w[step]['price'] = totalWeight*0.1*filling.price
+        ccal_price_w[step]['price'] = Math.ceil(totalWeight*0.1*filling.price)
         console.log(ccal_price_w[step])
         info_filling.innerHTML =
         `
@@ -462,7 +462,7 @@
             if (ccal_price_w.hasOwnProperty(key)) {
                 totalWeight += ccal_price_w[key].weight;
                 totalCcal += ccal_price_w[key].ccal;
-                totalPrice += ccal_price_w[key].price;
+                totalPrice += Math.ceil(ccal_price_w[key].price);
             }
         }
         info = document.getElementById(`info`)

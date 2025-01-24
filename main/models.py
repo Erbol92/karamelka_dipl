@@ -1,3 +1,5 @@
+import math
+
 from django.db import models
 from django.db.models.functions import Cast
 from io import BytesIO
@@ -323,7 +325,7 @@ def present_data(obj):
             v = val/1000000
             total_v += v
             layer['weight'] = float(v)*layer['bisquit'].weight
-            price += layer['weight']*layer['bisquit'].price
+            price += math.ceil(layer['weight']*layer['bisquit'].price)
             print(price)
             layer['calorie'] = layer['weight']*10*layer['bisquit'].calorie
             full_weight += layer['weight']
@@ -333,7 +335,7 @@ def present_data(obj):
         if present.get('filling'):
             filling_weight = 0.1*full_weight
             # *present['filling'].weight
-            price += present['filling'].price*filling_weight
+            price += math.ceil(present['filling'].price*filling_weight)
             filling_ccal = filling_weight*present['filling'].calorie*10
         # obj.price = int(price*coefficient)
         obj.price=price

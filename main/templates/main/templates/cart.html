@@ -33,6 +33,7 @@
             <div class="col">стоимость, руб.</div>
             <div class="col">добавить/удалить</div>
         </div>
+        {% if user.carts.all %}
         {% for cart in user.carts.all %}
         <div class="row">
 
@@ -55,6 +56,8 @@
             </div>
         </div>
         {% endfor %}
+        {% endif %}
+        {% if user.carts_constr.all %} %}
         {% for cc in user.carts_constr.all %}
         {% with cc.get_data as data %}
         <div class="row">
@@ -99,6 +102,7 @@
         </div>
         {% endwith %}
         {% endfor %}
+        {% endif %}
         <p class="text-end"><span class="fw-bold">всего: </span>{{user.sum_cart|floatformat:"2g"}} руб.</p>
         <div id="card" style="display: none;">
             <div class="input-group mb-3">

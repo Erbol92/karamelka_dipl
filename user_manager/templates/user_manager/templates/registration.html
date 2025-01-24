@@ -12,7 +12,7 @@
     emailInput.placeholder='email@mail.ru'
     emailInput.addEventListener('input', function() {
         // Удаляем все символы, кроме букв, цифр, @ и .
-        this.value = this.value.replace(/[^a-zA-Z0-9@.]/g, '');
+        this.value = this.value.replace(/[^a-zA-Z0-9@._-]/g, '');
 
         // Применяем простую маску
         const parts = this.value.split('@');
