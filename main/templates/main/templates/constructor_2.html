@@ -93,7 +93,7 @@
                         </select>
                     </label>
                     <div id="inputFields_${i}" class="div_input" style="display: none;" class="mt-3 mb-3">
-                        <div id="squareFields_${i}" style="display: none;">
+                        <div id="squareFields_${i}" style="display: none;" onchange="calculateLayer(${i})">
                             <label for="squareSide_${i}">Введите сторону, cм:</label>
                             <select id="squareSide_${i}" name="squareSide_${i}">
                                 <option value="20">20</option>
@@ -219,6 +219,14 @@
         document.getElementById('nextBtn').style.display = 'inline';
         jsonObject[step]['bisquit'] = bisquit.id;
         ccal_price_w[step]={}
+        ccal_price_w[step]['bisquit'] = bisquit
+        calculateLayer(step)
+    }
+
+    function calculateLayer(step) {
+        bisquit = ccal_price_w[step]['bisquit']
+        console.log(bisquit)
+        if (bisquit) {
         ccal_price_w[step]['weight']= getSelectedValue(step)*bisquit.weight
         ccal_price_w[step]['ccal'] = ccal_price_w[step]['weight']*bisquit.calorie*10
         ccal_price_w[step]['price'] = Math.ceil(ccal_price_w[step]['weight']*bisquit.price)
@@ -229,7 +237,7 @@
         <p>вес: ${ccal_price_w[step]['weight'].toFixed(2)} кг.</p>
         <p>ккал: ${ccal_price_w[step]['ccal'].toFixed(2)}</p>
         <p>цена: ${ccal_price_w[step]['price'].toFixed(2)} руб.</p>
-        `
+        `}
     }
 
     function selectFilling(filling, step) {
@@ -285,12 +293,13 @@
             const [width, depth] = document.getElementById(`rectangleDimensions_${step}`).value.split('x').map(value => parseFloat(value.trim()));
             selectedValue = width*2*depth**2/3;
         }
-
-        return selectedValue/1000000; // Возвращаем выбранное значение
+        selectedValue = selectedValue/1000000;
+<!--        calculateLayer(step)-->
+        return selectedValue; // Возвращаем выбранное значение
     }
-</script>
-<script>
+
     function showInputFields(id) {
+        ccal_price_w[id]={}
         const shapeSelect = document.getElementById(`shapeSelect_${id}`);
         const inputFields = document.getElementById(`inputFields_${id}`);
         const squareFields = document.getElementById(`squareFields_${id}`);

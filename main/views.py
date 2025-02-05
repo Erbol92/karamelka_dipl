@@ -158,7 +158,7 @@ def cart_view(request):
                           num_order=current_order_num))
             Order.objects.bulk_create(orders)
             CartConstructor.objects.filter(id__in=select_consrt_cart).delete()
-
+        return redirect('cart_view')
     return render(request, 'main/templates/cart.html', context=context)
 
 
