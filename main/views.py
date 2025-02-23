@@ -84,13 +84,18 @@ def preview_constructor(request):
         bisquit = Bisquit.objects.get(id=data['biscuit'])
         filling = Filling.objects.get(id=data['filling'])
         shape = data['shape']
-        layers = data['layers']
-    # 'layers': ['2'], 'biscuit': ['1'], 'filling': ['1'], 'shape': ['rectangle'], 'size-1': ['40x40x20'], 'size-2': ['30x20x10']}
+        support = 'длина*ширина*высота' if shape == 'rectangle' else 'диаметр*высота'
+        layers = int(data['layers'])
+        # 'layers': ['2'], 'biscuit': ['1'], 'filling': ['1'], 'shape': ['rectangle'], 'size-1': ['40x40x20'], 'size-2': ['30x20x10']}
         text = ('Сделай картинку торта:'
-                f'Торт состоит из {layers} уровней'
-                f'формы уровней {shape}'
-                f'бисквит {bisquit.title}, начинка {filling.title}'
+                f'Торт состоит из {layers} уровней \n'
+                f'формы уровней {shape} \n'
+                f'бисквит {bisquit.title}, начинка {filling.title} \n'
                 )
+        for i in range(1, layers + 1):
+            text += f'уровень {i} размером {data.get(f"size-{i}")} {support}\n'
+            text += 'учитывай указанные размеры уровней'
+        print(text)
     return redirect('/main/constructor')
 
 
