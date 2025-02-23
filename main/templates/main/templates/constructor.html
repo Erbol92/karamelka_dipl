@@ -1,103 +1,114 @@
 {% extends 'main/templates/base.html' %}
 {% load static %}
+{% load custom_filters %}
 {% block content %}
-<style>
-    body {
-    font-family: Arial, sans-serif;
-}
 
-.container {
-    display: flex;
-    justify-content: space-around;
-    margin: 20px;
-}
+<h1>Заказ торта</h1>
+<form action="{% url 'preview_constructor' %}" method="POST" class="form-control">
+    {% csrf_token %}
+    <label for="layers">Количество слоев:</label>
+    <select id="layers" name="layers" required class="form-select" onchange="addLayer()">
+        <option selected>выберите</option>
+        <option value="1">1</option>
+        <option value="2">2</option>
+        <option value="3">3</option>
+    </select>
+    <br><br>
 
-.shape {
-    width: 100px;
-    height: 50px;
-    background-color: lightblue;
-    border: 2px solid blue;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    user-select: none;
-}
+    <label for="biscuit">Выберите бисквит:</label>
+    <select id="biscuit" name="biscuit" required class="form-select">
+        {% for bisquit in bisquits %}
+        <option value="{{bisquit.id}}" title="{{bisquit.descrition}}">{{bisquit.title}}</option>
+        {% endfor %}
+    </select>
+    <br><br>
 
-#cylinder {
-    border-radius: 25px; /* Для цилиндра */
-}
+    <label for="filling">Выберите начинку:</label>
+    <select id="filling" name="filling" required class="form-select">
+        {% for filling in fillings %}
+        <option value="{{filling.id}}" title="{{filling.descrition}}">{{filling.title}}</option>
+        {% endfor %}
+    </select>
+    <br><br>
 
-.drop-area {
-    width: 400px;
-    height: 400px;
-    border: 2px dashed gray;
-    position: relative;
-    margin: 20px auto;
-    text-align: center;
-    line-height: 400px;
-    color: gray;
-}
-
-</style>
-<div class="container">
-    <div class="shape" id="rectangle" draggable="true">Прямоугольник</div>
-    <div class="shape" id="cylinder" draggable="true">Цилиндр</div>
-</div>
-<div class="drop-area" id="dropArea">Перетащите сюда</div>
+    <div id="shape_div" style="display:none;">
+        <label for="shape">Форма:</label>
+        <select id="shape" name="shape" onchange="toggleSizeInputs()" required class="form-select">
+            <option selected>выберите</option>
+            <option value="rectangle">Прямоугольник</option>
+            <option value="circle">Круг</option>
+        </select>
+    </div>
+    <div id="layers-container">
+    </div>
+    <br><br>
+    <button type="submit" class="btn btn-outline-secondary">Заказать</button>
+</form>
 
 <script>
-    const shapes = document.querySelectorAll('.shape');
-const dropArea = document.getElementById('dropArea');
+    function toggleSizeInputs() {
+    const layers = Number(document.getElementById('layers').value)
+        const shape = document.getElementById(`shape`).value;
+        for (let i = 1; i <= layers; i++) {
+          const rectangleInputs = document.getElementById(`rectangle-${i}`);
+            const circleInputs = document.getElementById(`circle-${i}`);
 
-shapes.forEach(shape => {
-    shape.addEventListener('dragstart', dragStart);
-});
+            if (shape === 'rectangle') {
+                rectangleInputs.style.display = 'block';
+                circleInputs.style.display = 'none';
+                var select_disable = circleInputs.children[1];
+                var select_enable = rectangleInputs.children[1];
+            } else {
+                rectangleInputs.style.display = 'none';
+                circleInputs.style.display = 'block';
+                var select_disable = rectangleInputs.children[1];
+                var select_enable = circleInputs.children[1];
+            }
+            select_disable.disabled = true;
+            select_enable.disabled = false;
+        }
 
-dropArea.addEventListener('dragover', dragOver);
-dropArea.addEventListener('drop', drop);
-
-function dragStart(e) {
-    e.dataTransfer.setData('text/plain', e.target.id);
-}
-
-function dragOver(e) {
-    e.preventDefault();
-}
-
-function drop(e) {
-    e.preventDefault();
-    const shapeId = e.dataTransfer.getData('text/plain');
-    const shape = document.getElementById(shapeId).cloneNode(true);
-    shape.style.position = 'absolute';
-    shape.style.left = `${e.offsetX - 50}px`; // Центрируем по X
-    shape.style.top = `${e.offsetY - 25}px`; // Центрируем по Y
-    dropArea.appendChild(shape);
-
-    // Добавляем возможность изменения размера
-    shape.addEventListener('mousedown', initResize);
-}
-
-function initResize(e) {
-    const shape = e.target;
-    const startX = e.clientX;
-    const startY = e.clientY;
-    const startWidth = parseInt(document.defaultView.getComputedStyle(shape).width, 10);
-    const startHeight = parseInt(document.defaultView.getComputedStyle(shape).height, 10);
-
-    function resize(e) {
-        shape.style.width = `${startWidth + e.clientX - startX}px`;
-        shape.style.height = `${startHeight + e.clientY - startY}px`;
     }
 
-    function stopResize() {
-        window.removeEventListener('mousemove', resize);
-        window.removeEventListener('mouseup', stopResize);
+    function addLayer() {
+    const layers = Number(document.getElementById('layers').value)
+    const layersContainer = document.getElementById('layers-container');
+    const shape_div = document.getElementById('shape_div');
+    if (layers)
+        shape_div.style.display="block";
+    else
+        shape_div.style.display="none";
+    const shape = document.getElementById("shape").value;
+    document.getElementById("shape").selectedIndex = 0;
+    layersContainer.innerHTML ='';
+    for (let i = 1; i <= layers; i++) {
+        const newLayer = document.createElement('div');
+        newLayer.className = 'layer';
+        newLayer.id = `layer-${i}`;
+        newLayer.innerHTML = `
+            <br><br>
+            <h4>уровень ${i}</h4>
+            <div id="rectangle-${i}" class="size-inputs" style="display: none;">
+                <label for="size-${i}">Размер (a x b x h), см:</label>
+                <select id="size-${i}" name="size-${i}" required>
+                {% for size in sizes|get_size:"rectangle" %}
+                    <option value="{{size.length}}x{{size.width}}x{{size.height}}">{{size.length}}x{{size.width}}x{{size.height}}</option>
+                {% endfor %}
+                </select>
+            </div>
+
+            <div id="circle-${i}" class="size-inputs" style="display: none;">
+                <label for="size-${i}">Размер (d x h), см:</label>
+                <select id="size-${i}" name="size-${i}" required>
+                    {% for size in sizes|get_size:"circle" %}
+                        <option value="{{size.diameter}}x{{size.height}}">{{size.diameter}}x{{size.height}}</option>
+                    {% endfor %}
+                </select>
+                <br>
+            </div>
+        `;
+        layersContainer.appendChild(newLayer);
     }
-
-    window.addEventListener('mousemove', resize);
-    window.addEventListener('mouseup', stopResize);
-}
-
+    }
 </script>
 {% endblock %}

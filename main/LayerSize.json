@@ -1,0 +1,33 @@
+{
+  "circle": [
+    {
+      "diameter": 20,
+      "height": 10
+    },
+    {
+      "diameter": 30,
+      "height": 15
+    },
+    {
+      "diameter": 40,
+      "height": 15
+    }
+  ],
+  "rectangle": [
+    {
+      "length":30,
+      "width": 20,
+      "height": 10
+    },
+    {
+      "length":40,
+      "width": 30,
+      "height": 15
+    },
+    {
+      "length":40,
+      "width": 40,
+      "height": 20
+    }
+  ]
+}
