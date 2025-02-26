@@ -4,7 +4,7 @@
 {% block content %}
 
 <h1>Заказ торта</h1>
-<form action="{% url 'preview_constructor' %}" method="POST" class="form-control">
+<form action="" method="POST" class="form-control">
     {% csrf_token %}
     <label for="layers">Количество слоев:</label>
     <select id="layers" name="layers" required class="form-select" onchange="addLayer()">
@@ -31,6 +31,14 @@
     </select>
     <br><br>
 
+    <label for="decoration">Выберите украшение:</label>
+    <select id="decoration" name="decoration" required class="form-select">
+        {% for decoration in decorations %}
+        <option value="{{decoration.id}}">{{decoration.title}}</option>
+        {% endfor %}
+    </select>
+    <br><br>
+
     <div id="shape_div" style="display:none;">
         <label for="shape">Форма:</label>
         <select id="shape" name="shape" onchange="toggleSizeInputs()" required class="form-select">
@@ -44,6 +52,10 @@
     <br><br>
     <button type="submit" class="btn btn-outline-secondary">Заказать</button>
 </form>
+{% if image_url %}
+<h2>Вот ваше изображение:</h2>
+<img src="{{ image_url }}" alt="Полученное изображение"/>
+{% endif %}
 
 <script>
     function toggleSizeInputs() {
@@ -88,7 +100,7 @@
         newLayer.innerHTML = `
             <br><br>
             <h4>уровень ${i}</h4>
-            <div id="rectangle-${i}" class="size-inputs" style="display: none;">
+            <div id="rectangle-${i}" class="size-inputs form-select" style="display: none;">
                 <label for="size-${i}">Размер (a x b x h), см:</label>
                 <select id="size-${i}" name="size-${i}" required>
                 {% for size in sizes|get_size:"rectangle" %}
@@ -97,7 +109,7 @@
                 </select>
             </div>
 
-            <div id="circle-${i}" class="size-inputs" style="display: none;">
+            <div id="circle-${i}" class="size-inputs form-select" style="display: none;">
                 <label for="size-${i}">Размер (d x h), см:</label>
                 <select id="size-${i}" name="size-${i}" required>
                     {% for size in sizes|get_size:"circle" %}

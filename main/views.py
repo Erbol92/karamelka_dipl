@@ -7,10 +7,10 @@ from django.urls import reverse_lazy
 from user_manager.models import UserProxy
 from .forms import CommentForm
 from .models import *
+from .gigachat import push_and_get_photo
 
 
 # Create your views here.
-
 
 def home(request):
     object_list = Products.objects.all()
@@ -64,15 +64,39 @@ def main_page_objects(request):
 
 
 def constructor(request):
+    image_url = None
     bisquits = Bisquit.objects.all()
     fillings = Filling.objects.all()
+    decoration = Decoration.objects.all()
     with open('main/LayerSize.json') as f:
         sizes = json.load(f)
+    if request.method == 'POST':
+        data = request.POST
+        bisquit = Bisquit.objects.get(id=data['biscuit'])
+        filling = Filling.objects.get(id=data['filling'])
+        shape = data['shape']
+        support = 'длина ширина высота' if shape == 'rectangle' else 'диаметр*высота'
+        layers = int(data['layers'])
+        # 'layers': ['2'], 'biscuit': ['1'], 'filling': ['1'], 'shape': ['rectangle'], 'size-1': ['40x40x20'], 'size-2': ['30x20x10']}
+        text = ('Представь что ты визуализатор \n'
+                'Сделай картинку торта: \n'
+                f'Торт состоит из {layers} уровней \n'
+                f'формы уровней {shape} \n'
+                f'бисквит {bisquit.title}, начинка {filling.title} \n'
+                )
+        for i in range(1, layers + 1):
+            text += f'уровень {i} размером {data.get(f"size-{i}")} {support}\n'
+        text += 'учитывай указанные размеры уровней \n'
+        text += 'без обозначения размеров на картинке \n'
+        image_url = push_and_get_photo(text)
+
     context = {
         'bisquits': bisquits,
         'fillings': fillings,
         'sizes': sizes,
         'title': 'конструктор',
+        'image_url': '/media/fl.jpg',
+        'decorations': decoration,
     }
     return render(request, 'main/templates/constructor.html', context=context)
 
@@ -84,19 +108,25 @@ def preview_constructor(request):
         bisquit = Bisquit.objects.get(id=data['biscuit'])
         filling = Filling.objects.get(id=data['filling'])
         shape = data['shape']
-        support = 'длина*ширина*высота' if shape == 'rectangle' else 'диаметр*высота'
+        support = 'длина ширина высота' if shape == 'rectangle' else 'диаметр*высота'
         layers = int(data['layers'])
         # 'layers': ['2'], 'biscuit': ['1'], 'filling': ['1'], 'shape': ['rectangle'], 'size-1': ['40x40x20'], 'size-2': ['30x20x10']}
-        text = ('Сделай картинку торта:'
+        text = ('Представь что ты визуализатор \n'
+                'Сделай картинку торта: \n'
                 f'Торт состоит из {layers} уровней \n'
                 f'формы уровней {shape} \n'
                 f'бисквит {bisquit.title}, начинка {filling.title} \n'
                 )
         for i in range(1, layers + 1):
             text += f'уровень {i} размером {data.get(f"size-{i}")} {support}\n'
-            text += 'учитывай указанные размеры уровней'
-        print(text)
-    return redirect('/main/constructor')
+        text += 'учитывай указанные размеры уровней \n'
+        text += 'без обозначения размеров на картинке \n'
+        image_url = push_and_get_photo(text)
+        print(image_url)
+        context = {
+            'image_url': image_url,
+        }
+    return render(request, 'main/templates/constructor.html', context=context)
 
 
 @login_required(login_url=reverse_lazy('auth'))

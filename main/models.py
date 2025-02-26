@@ -281,3 +281,13 @@ class Comment(models.Model):
         self.moderated = True
         self.save()
 
+
+class Decoration(models.Model):
+    title = models.CharField('название', max_length=100)
+    def __str__(self):
+        return f'{self.title}'
+
+    class Meta:
+        verbose_name = 'украшения'
+        verbose_name_plural = 'украшения'
+    pass
