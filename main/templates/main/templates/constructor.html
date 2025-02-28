@@ -32,9 +32,17 @@
     <br><br>
 
     <label for="decoration">Выберите украшение:</label>
-    <select id="decoration" name="decoration" required class="form-select">
+    <select id="decoration" name="decoration" class="form-select" multiple>
         {% for decoration in decorations %}
         <option value="{{decoration.id}}">{{decoration.title}}</option>
+        {% endfor %}
+    </select>
+    <br><br>
+
+    <label for="sprinkles">Выберите посыпку:</label>
+    <select id="sprinkles" name="sprinkles" class="form-select" multiple>
+        {% for sprinkles in sprinkleses %}
+        <option value="{{sprinkles.id}}">{{sprinkles.title}}</option>
         {% endfor %}
     </select>
     <br><br>

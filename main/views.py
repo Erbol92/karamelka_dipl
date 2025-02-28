@@ -68,12 +68,17 @@ def constructor(request):
     bisquits = Bisquit.objects.all()
     fillings = Filling.objects.all()
     decoration = Decoration.objects.all()
+    sprinkles = Sprinkles.objects.all()
+
     with open('main/LayerSize.json') as f:
         sizes = json.load(f)
     if request.method == 'POST':
         data = request.POST
+        print(data)
         bisquit = Bisquit.objects.get(id=data['biscuit'])
         filling = Filling.objects.get(id=data['filling'])
+        if data.get('decoration', None):
+            decoration = Decoration.objects.get(id=data['decoration'])
         shape = data['shape']
         support = 'длина ширина высота' if shape == 'rectangle' else 'диаметр*высота'
         layers = int(data['layers'])
@@ -88,7 +93,7 @@ def constructor(request):
             text += f'уровень {i} размером {data.get(f"size-{i}")} {support}\n'
         text += 'учитывай указанные размеры уровней \n'
         text += 'без обозначения размеров на картинке \n'
-        image_url = push_and_get_photo(text)
+        # image_url = push_and_get_photo(text)
 
     context = {
         'bisquits': bisquits,
@@ -97,6 +102,7 @@ def constructor(request):
         'title': 'конструктор',
         'image_url': '/media/fl.jpg',
         'decorations': decoration,
+        'sprinkleses':sprinkles,
     }
     return render(request, 'main/templates/constructor.html', context=context)
 

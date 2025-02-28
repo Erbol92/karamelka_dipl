@@ -32,4 +32,6 @@ admin.site.register(Filling)
 admin.site.register(CartConstructor)
 admin.site.register(Order)
 admin.site.register(Comment)
+admin.site.register(Decoration)
+admin.site.register(Sprinkles)
 
