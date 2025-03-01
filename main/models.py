@@ -1,17 +1,15 @@
 import json
-import math
+from io import BytesIO
+
 from PIL import Image
-from datetime import datetime
 from django.contrib.auth.models import User
 from django.core.files import File
 from django.core.files.base import ContentFile
 from django.db import models
 from django.db.models.functions import Cast
 from django.shortcuts import reverse
-from io import BytesIO
 
 from diplom.settings import MEDIA_ROOT
-from diplom.settings import coefficient
 
 
 # Create your models here.
@@ -284,6 +282,7 @@ class Comment(models.Model):
 
 class Decoration(models.Model):
     title = models.CharField('название', max_length=100)
+
     def __str__(self):
         return f'{self.title}'
 
@@ -291,8 +290,10 @@ class Decoration(models.Model):
         verbose_name = 'украшения'
         verbose_name_plural = 'украшения'
 
+
 class Sprinkles(models.Model):
     title = models.CharField('название', max_length=100)
+
     def __str__(self):
         return f'{self.title}'
 

@@ -5,9 +5,9 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse_lazy
 
 from user_manager.models import UserProxy
-from .forms import CommentForm
-from .models import *
+from .forms import CommentForm, DecorationFormSet
 from .gigachat import push_and_get_photo
+from .models import *
 
 
 # Create your views here.
@@ -64,46 +64,72 @@ def main_page_objects(request):
 
 
 def constructor(request):
-    image_url = None
+    text = ('Сделай картинку торта: \n'
+            )
+    bisquit, filling, support, layers, shape = '', '', '', '', ''
+    shape_ru = shape
     bisquits = Bisquit.objects.all()
     fillings = Filling.objects.all()
-    decoration = Decoration.objects.all()
     sprinkles = Sprinkles.objects.all()
-
+    formset = DecorationFormSet(request.POST or None)
     with open('main/LayerSize.json') as f:
         sizes = json.load(f)
-    if request.method == 'POST':
-        data = request.POST
-        print(data)
-        bisquit = Bisquit.objects.get(id=data['biscuit'])
-        filling = Filling.objects.get(id=data['filling'])
-        if data.get('decoration', None):
-            decoration = Decoration.objects.get(id=data['decoration'])
-        shape = data['shape']
-        support = 'длина ширина высота' if shape == 'rectangle' else 'диаметр*высота'
-        layers = int(data['layers'])
-        # 'layers': ['2'], 'biscuit': ['1'], 'filling': ['1'], 'shape': ['rectangle'], 'size-1': ['40x40x20'], 'size-2': ['30x20x10']}
-        text = ('Представь что ты визуализатор \n'
-                'Сделай картинку торта: \n'
-                f'Торт состоит из {layers} уровней \n'
-                f'формы уровней {shape} \n'
-                f'бисквит {bisquit.title}, начинка {filling.title} \n'
-                )
-        for i in range(1, layers + 1):
-            text += f'уровень {i} размером {data.get(f"size-{i}")} {support}\n'
-        text += 'учитывай указанные размеры уровней \n'
-        text += 'без обозначения размеров на картинке \n'
-        # image_url = push_and_get_photo(text)
-
     context = {
         'bisquits': bisquits,
         'fillings': fillings,
         'sizes': sizes,
         'title': 'конструктор',
-        'image_url': '/media/fl.jpg',
-        'decorations': decoration,
-        'sprinkleses':sprinkles,
+        'sprinkleses': sprinkles,
+        'formset': formset,
     }
+    if request.method == 'POST':
+        data = request.POST
+        print(data)
+        if data.get('biscuit', None):
+            bisquit = Bisquit.objects.get(id=data['biscuit'])
+            text += f'Основа: {bisquit.title}\n'
+
+        if data.get('filling', None):
+            filling = Filling.objects.get(id=data['filling'])
+            text += f'Начинка: {filling.title} \n'
+
+        if formset.is_valid():
+            text += 'Украшения:\n'
+            for form in formset:
+                decoration = form.cleaned_data.get('decoration')
+                quantity = form.cleaned_data.get('quantity')
+                if decoration and quantity:
+                    text += f'{decoration.title}: {quantity} штук\n'
+
+        if data.getlist('sprinkles'):
+            text += 'Посыпка: '
+            sprinks = Sprinkles.objects.filter(id__in=data.getlist('sprinkles'))
+            text += ', '.join(sprink.title for sprink in sprinks)
+            text += '\n'
+
+        if data.get('shape'):
+            shape = data['shape']
+            match shape:
+                case 'rectangle':
+                    shape_ru = 'прямоугольная'
+                case 'circle':
+                    shape_ru = 'круг'
+            text += f'форма уровней {shape_ru} \n'
+
+        if data.get('layers'):
+            layers = int(data['layers'])
+            text += f'Количество уровней: {layers}  \n'
+            for i in range(1, layers + 1):
+                size = data.get(f"size-{i}").split('x')
+                if shape == 'rectangle':
+                    text += f'уровень {i}  длина {size[0]} см. ширина {size[1]} см. высота {size[2]} см.\n'
+                if shape == 'circle':
+                    text += f'уровень {i} диаметр {size[0]} см. высота {size[1]} см.\n'
+            context.update({'text': text, 'image_url': '/media/fl.jpg'})
+            push_and_get_photo(text)
+            return render(request, 'main/templates/constructor.html',
+                          context=context)
+
     return render(request, 'main/templates/constructor.html', context=context)
 
 

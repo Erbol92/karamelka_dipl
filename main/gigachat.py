@@ -33,7 +33,7 @@ def push_and_get_photo(text):
         "messages": [
             {
                 "role": "system",
-                "content": "Представь что ты кондитер"
+                "content": "сделай точный рисунок по описанию"
             },
             {
                 "role": "user",
@@ -75,5 +75,4 @@ def push_and_get_photo(text):
 
     with open(f'{MEDIA_ROOT}/fl.jpg', 'wb') as out_file:
         shutil.copyfileobj(response.raw, out_file)
-        print(out_file)
         return out_file

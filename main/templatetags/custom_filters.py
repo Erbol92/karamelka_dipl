@@ -6,4 +6,6 @@ register = template.Library()
 
 @register.filter
 def get_size(lst:dict, item:str):
-    return lst[item]
+    print(lst)
+    if lst:
+        return lst[item]

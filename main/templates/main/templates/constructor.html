@@ -3,67 +3,108 @@
 {% load custom_filters %}
 {% block content %}
 
+
 <h1>Заказ торта</h1>
-<form action="" method="POST" class="form-control">
-    {% csrf_token %}
-    <label for="layers">Количество слоев:</label>
-    <select id="layers" name="layers" required class="form-select" onchange="addLayer()">
-        <option selected>выберите</option>
-        <option value="1">1</option>
-        <option value="2">2</option>
-        <option value="3">3</option>
-    </select>
-    <br><br>
-
-    <label for="biscuit">Выберите бисквит:</label>
-    <select id="biscuit" name="biscuit" required class="form-select">
-        {% for bisquit in bisquits %}
-        <option value="{{bisquit.id}}" title="{{bisquit.descrition}}">{{bisquit.title}}</option>
-        {% endfor %}
-    </select>
-    <br><br>
-
-    <label for="filling">Выберите начинку:</label>
-    <select id="filling" name="filling" required class="form-select">
-        {% for filling in fillings %}
-        <option value="{{filling.id}}" title="{{filling.descrition}}">{{filling.title}}</option>
-        {% endfor %}
-    </select>
-    <br><br>
-
-    <label for="decoration">Выберите украшение:</label>
-    <select id="decoration" name="decoration" class="form-select" multiple>
-        {% for decoration in decorations %}
-        <option value="{{decoration.id}}">{{decoration.title}}</option>
-        {% endfor %}
-    </select>
-    <br><br>
-
-    <label for="sprinkles">Выберите посыпку:</label>
-    <select id="sprinkles" name="sprinkles" class="form-select" multiple>
-        {% for sprinkles in sprinkleses %}
-        <option value="{{sprinkles.id}}">{{sprinkles.title}}</option>
-        {% endfor %}
-    </select>
-    <br><br>
-
-    <div id="shape_div" style="display:none;">
-        <label for="shape">Форма:</label>
-        <select id="shape" name="shape" onchange="toggleSizeInputs()" required class="form-select">
-            <option selected>выберите</option>
-            <option value="rectangle">Прямоугольник</option>
-            <option value="circle">Круг</option>
+<div class="d-flex">
+    <form action="" method="POST" class="form-control w-75">
+        {% csrf_token %}
+        <label for="layers">Количество слоев:</label>
+        <select id="layers" name="layers" required class="form-select" onchange="addLayer()">
+            <option selected disabled>выберите</option>
+            <option value="1">1</option>
+            <option value="2">2</option>
+            <option value="3">3</option>
         </select>
+        <br><br>
+
+        <label for="biscuit">Выберите бисквит:</label>
+        <select id="biscuit" name="biscuit" required class="form-select">
+            {% for bisquit in bisquits %}
+            <option value="{{bisquit.id}}" title="{{bisquit.descrition}}">{{bisquit.title}}</option>
+            {% endfor %}
+        </select>
+        <br><br>
+
+        <label for="filling">Выберите начинку:</label>
+        <select id="filling" name="filling" required class="form-select">
+            {% for filling in fillings %}
+            <option value="{{filling.id}}" title="{{filling.descrition}}">{{filling.title}}</option>
+            {% endfor %}
+        </select>
+
+        <br><br>
+        {{ formset.management_form }}
+        <div id="formset-container">
+            {% for form in formset %}
+            <div class="formset_row form-control">
+                {{form.as_div}}
+                <button type="button" class="remove-form btn btn-sm btn-outline-danger">удалить</button>
+            </div>
+            <br>
+            {% endfor %}
+        </div>
+        <button type="button" id="add-form" class="btn btn-sm btn-outline-info">добавить форму</button>
+        <br><br>
+
+        <label for="sprinkles">Выберите посыпку:</label>
+        <select id="sprinkles" name="sprinkles" class="form-select" multiple>
+            {% for sprinkles in sprinkleses %}
+            <option value="{{sprinkles.id}}">{{sprinkles.title}}</option>
+            {% endfor %}
+        </select>
+        <br><br>
+
+        <div id="shape_div" style="display:none;">
+            <label for="shape">Форма:</label>
+            <select id="shape" name="shape" onchange="toggleSizeInputs()" required class="form-select">
+                <option selected disabled>выберите</option>
+                <option value="rectangle">Прямоугольник</option>
+                <option value="circle">Круг</option>
+            </select>
+        </div>
+        <div id="layers-container">
+        </div>
+        <br><br>
+        <button type="submit" class="btn btn-outline-secondary">Заказать</button>
+    </form>
+    {% if image_url %}
+    <div class="p-3">
+        <p>{{text|linebreaksbr}}</p>
+        <h2>Вот ваше изображение:</h2>
+        <img src="{{ image_url }}" width="256" alt="Полученное изображение"/>
     </div>
-    <div id="layers-container">
-    </div>
-    <br><br>
-    <button type="submit" class="btn btn-outline-secondary">Заказать</button>
-</form>
-{% if image_url %}
-<h2>Вот ваше изображение:</h2>
-<img src="{{ image_url }}" alt="Полученное изображение"/>
-{% endif %}
+    {% endif %}
+</div>
+
+<script>
+    let formsetContainer = document.getElementById('formset-container');
+    let formCount = {{ formset.total_form_count }}; // Общее количество форм
+    document.getElementById('add-form').addEventListener('click', function() {
+        // Клонируем первую форму
+        let newForm = formsetContainer.children[0].cloneNode(true);
+
+        // Обновляем индексы
+        let regex = new RegExp(`form-(\\d+)`, 'g');
+        newForm.innerHTML = newForm.innerHTML.replace(regex, `form-${formCount}`);
+
+        // Сбрасываем значения
+        newForm.querySelectorAll('input').forEach(input => {
+            input.value = '';
+        });
+        if (formCount <= 2) {
+                formsetContainer.appendChild(newForm);
+                formCount++;}
+        else
+            alert('максимум 3 вида')
+    });
+
+    formsetContainer.addEventListener('click', function(e) {
+        if (e.target.classList.contains('remove-form'))
+            if (formCount != 1)
+                {e.target.closest('.formset_row').remove();
+                formCount--}
+    });
+</script>
 
 <script>
     function toggleSizeInputs() {
