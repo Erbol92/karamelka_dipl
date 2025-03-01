@@ -33,13 +33,14 @@ def push_and_get_photo(text):
         "messages": [
             {
                 "role": "system",
-                "content": "сделай точный рисунок по описанию"
+                "content": "Ты профессиональный кондитер. Сделай точный рисунок по описанию"
             },
             {
                 "role": "user",
                 "content": f"{text}"
             }
         ],
+        "temperature": 0,
         "function_call": "auto"
     })
     headers = {

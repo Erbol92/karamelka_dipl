@@ -84,51 +84,51 @@ def constructor(request):
     }
     if request.method == 'POST':
         data = request.POST
-        print(data)
-        if data.get('biscuit', None):
-            bisquit = Bisquit.objects.get(id=data['biscuit'])
-            text += f'Основа: {bisquit.title}\n'
+        if data.get('action') == 'generate':
+            if data.get('biscuit', None):
+                bisquit = Bisquit.objects.get(id=data['biscuit'])
+                text += f'Основа: {bisquit.title}\n'
 
-        if data.get('filling', None):
-            filling = Filling.objects.get(id=data['filling'])
-            text += f'Начинка: {filling.title} \n'
+            if data.get('filling', None):
+                filling = Filling.objects.get(id=data['filling'])
+                text += f'Начинка: {filling.title} \n'
 
-        if formset.is_valid():
-            text += 'Украшения:\n'
-            for form in formset:
-                decoration = form.cleaned_data.get('decoration')
-                quantity = form.cleaned_data.get('quantity')
-                if decoration and quantity:
-                    text += f'{decoration.title}: {quantity} штук\n'
+            if formset.is_valid():
+                text += 'Украшения:\n'
+                for form in formset:
+                    decoration = form.cleaned_data.get('decoration')
+                    quantity = form.cleaned_data.get('quantity')
+                    if decoration and quantity:
+                        text += f'{decoration.title}: {quantity} штук\n'
 
-        if data.getlist('sprinkles'):
-            text += 'Посыпка: '
-            sprinks = Sprinkles.objects.filter(id__in=data.getlist('sprinkles'))
-            text += ', '.join(sprink.title for sprink in sprinks)
-            text += '\n'
+            if data.getlist('sprinkles'):
+                text += 'Посыпка: '
+                sprinks = Sprinkles.objects.filter(id__in=data.getlist('sprinkles'))
+                text += ', '.join(sprink.title for sprink in sprinks)
+                text += '\n'
 
-        if data.get('shape'):
-            shape = data['shape']
-            match shape:
-                case 'rectangle':
-                    shape_ru = 'прямоугольная'
-                case 'circle':
-                    shape_ru = 'круг'
-            text += f'форма уровней {shape_ru} \n'
+            if data.get('shape'):
+                shape = data['shape']
+                match shape:
+                    case 'rectangle':
+                        shape_ru = 'прямоугольная'
+                    case 'circle':
+                        shape_ru = 'круг'
+                text += f'форма уровней {shape_ru} \n'
 
-        if data.get('layers'):
-            layers = int(data['layers'])
-            text += f'Количество уровней: {layers}  \n'
-            for i in range(1, layers + 1):
-                size = data.get(f"size-{i}").split('x')
-                if shape == 'rectangle':
-                    text += f'уровень {i}  длина {size[0]} см. ширина {size[1]} см. высота {size[2]} см.\n'
-                if shape == 'circle':
-                    text += f'уровень {i} диаметр {size[0]} см. высота {size[1]} см.\n'
-            context.update({'text': text, 'image_url': '/media/fl.jpg'})
-            push_and_get_photo(text)
-            return render(request, 'main/templates/constructor.html',
-                          context=context)
+            if data.get('layers'):
+                layers = int(data['layers'])
+                text += f'Количество уровней: {layers}  \n'
+                for i in range(1, layers + 1):
+                    size = data.get(f"size-{i}").split('x')
+                    if shape == 'rectangle':
+                        text += f'уровень {i}  длина {size[0]} см. ширина {size[1]} см. высота {size[2]} см.\n'
+                    if shape == 'circle':
+                        text += f'уровень {i} диаметр {size[0]} см. высота {size[1]} см.\n'
+                context.update({'text': text, 'image_url': '/media/fl.jpg'})
+                push_and_get_photo(text)
+                return render(request, 'main/templates/constructor.html',
+                              context=context)
 
     return render(request, 'main/templates/constructor.html', context=context)
 
