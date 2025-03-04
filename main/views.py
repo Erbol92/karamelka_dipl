@@ -68,6 +68,7 @@ def constructor(request):
             )
     bisquit, filling, support, layers, shape = '', '', '', '', ''
     shape_ru = shape
+    return_text = ''
     bisquits = Bisquit.objects.all()
     fillings = Filling.objects.all()
     sprinkles = Sprinkles.objects.all()
@@ -118,15 +119,25 @@ def constructor(request):
 
             if data.get('layers'):
                 layers = int(data['layers'])
-                text += f'Количество уровней: {layers}  \n'
+                match layers:
+                    case 1:
+                        text += 'одноярусный\n'
+                    case 2:
+                        text += 'двухъярусный\n'
+                    case 3:
+                        text += 'трехъярусный\n'
+                return_text = text
                 for i in range(1, layers + 1):
                     size = data.get(f"size-{i}").split('x')
                     if shape == 'rectangle':
-                        text += f'уровень {i}  длина {size[0]} см. ширина {size[1]} см. высота {size[2]} см.\n'
+                        return_text += f'ярус {i}  длина {size[0]} см. ширина {size[1]} см. высота {size[2]} см.\n'
+                        text += f'ярус {i} площадью {2*(int(size[0])+int(size[1]))*int(size[2])}\n'
                     if shape == 'circle':
-                        text += f'уровень {i} диаметр {size[0]} см. высота {size[1]} см.\n'
-                context.update({'text': text, 'image_url': '/media/fl.jpg'})
+                        return_text += f'ярус {i} диаметр {size[0]} см. высота {size[1]} см.\n'
+                        text += f'ярус {i} площадью {3.14*float(size[0])*(int(size[1])+int(size[0])/2)}\n'
+                context.update({'text': return_text, 'image_url': '/media/fl.jpg'})
                 push_and_get_photo(text)
+                print(text)
                 return render(request, 'main/templates/constructor.html',
                               context=context)
 

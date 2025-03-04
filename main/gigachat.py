@@ -29,11 +29,11 @@ def push_and_get_photo(text):
     url = "https://gigachat.devices.sberbank.ru/api/v1/chat/completions"
 
     payload = json.dumps({
-        "model": "GigaChat",
+        "model": "GigaChat-Pro",
         "messages": [
             {
                 "role": "system",
-                "content": "Ты профессиональный кондитер. Сделай точный рисунок по описанию"
+                "content": "Ты профессиональный кондитер. Сделай точный рисунок по описанию соблюдая числовые значения"
             },
             {
                 "role": "user",

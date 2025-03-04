@@ -15,7 +15,7 @@
             <option value="2">2</option>
             <option value="3">3</option>
         </select>
-        <br><br>
+        <br>
 
         <label for="biscuit">Выберите бисквит:</label>
         <select id="biscuit" name="biscuit" required class="form-select">
@@ -23,7 +23,7 @@
             <option value="{{bisquit.id}}" title="{{bisquit.descrition}}">{{bisquit.title}}</option>
             {% endfor %}
         </select>
-        <br><br>
+        <br>
 
         <label for="filling">Выберите начинку:</label>
         <select id="filling" name="filling" required class="form-select">
@@ -32,7 +32,7 @@
             {% endfor %}
         </select>
 
-        <br><br>
+        <br>
         {{ formset.management_form }}
         <div id="formset-container">
             {% for form in formset %}
@@ -44,7 +44,8 @@
             {% endfor %}
         </div>
         <button type="button" id="add-form" class="btn btn-sm btn-outline-info">добавить форму</button>
-        <br><br>
+        <hr>
+        <br>
 
         <label for="sprinkles">Выберите посыпку:</label>
         <select id="sprinkles" name="sprinkles" class="form-select" multiple>
@@ -52,7 +53,7 @@
             <option value="{{sprinkles.id}}">{{sprinkles.title}}</option>
             {% endfor %}
         </select>
-        <br><br>
+        <br>
 
         <div id="shape_div" style="display:none;">
             <label for="shape">Форма:</label>
@@ -64,15 +65,25 @@
         </div>
         <div id="layers-container">
         </div>
-        <br><br>
+        <br>
         <button type="submit" class="btn btn-outline-secondary" name="action" value="order">Заказать</button>
-        <button type="submit" class="btn btn-outline-secondary" name="action" value="generate">Генерация</button>
+        <button type="submit" class="btn btn-outline-secondary" name="action" id="generate" value="generate">Генерация</button>
     </form>
+    <div class="spinner-border text-info m-auto" id="loader" style="display:none;" role="status">
+        <span style="">загрузка...</span>
+    </div>
+    <script>
+        const generate_button = document.getElementById('generate');
+        generate_button.addEventListener('click', function() {
+        const loader = document.getElementById('loader');
+        loader.style.display = 'block';
+    });
+    </script>
     {% if image_url %}
     <div class="p-3">
         <p>{{text|linebreaksbr}}</p>
         <h2>Вот ваше изображение:</h2>
-        <img src="{{ image_url }}" width="256" alt="Полученное изображение"/>
+        <img src="{{ image_url }}" width="312" alt="Полученное изображение"/>
     </div>
     {% endif %}
 </div>
@@ -148,7 +159,7 @@
         newLayer.className = 'layer';
         newLayer.id = `layer-${i}`;
         newLayer.innerHTML = `
-            <br><br>
+            <br>
             <h4>уровень ${i}</h4>
             <div id="rectangle-${i}" class="size-inputs form-select" style="display: none;">
                 <label for="size-${i}">Размер (a x b x h), см:</label>
