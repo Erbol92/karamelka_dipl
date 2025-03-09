@@ -1,3 +1,6 @@
+import math
+import time
+
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.db.models import Max
@@ -63,12 +66,22 @@ def main_page_objects(request):
     return context
 
 
+def volume_calc(form: str, size: list):
+    size = [int(num) for num in size]
+    match form:
+        case 'rectangle':
+            return size[0] * size[1] * size[2]
+        case 'circle':
+            return 3.14 * size[0] * size[0] * size[1] / 4
+
+
 def constructor(request):
     text = ('Сделай картинку торта: \n'
             )
     bisquit, filling, support, layers, shape = '', '', '', '', ''
     shape_ru = shape
     return_text = ''
+    characteristics = {}
     bisquits = Bisquit.objects.all()
     fillings = Filling.objects.all()
     sprinkles = Sprinkles.objects.all()
@@ -89,23 +102,32 @@ def constructor(request):
             if data.get('biscuit', None):
                 bisquit = Bisquit.objects.get(id=data['biscuit'])
                 text += f'Основа: {bisquit.title}\n'
+                characteristics['bisquit'] = bisquit
 
             if data.get('filling', None):
                 filling = Filling.objects.get(id=data['filling'])
                 text += f'Начинка: {filling.title} \n'
+                characteristics['filling'] = filling
 
             if formset.is_valid():
                 text += 'Украшения:\n'
+                characteristics['decoration'] = []
+                characteristics['decoration_price'] = 0
                 for form in formset:
                     decoration = form.cleaned_data.get('decoration')
                     quantity = form.cleaned_data.get('quantity')
                     if decoration and quantity:
                         text += f'{decoration.title}: {quantity} штук\n'
+                        characteristics['decoration'].append({decoration: quantity})
+                        characteristics['decoration_price'] += decoration.price * quantity
 
             if data.getlist('sprinkles'):
+                characteristics['sprinks_price'] = 0
                 text += 'Посыпка: '
                 sprinks = Sprinkles.objects.filter(id__in=data.getlist('sprinkles'))
                 text += ', '.join(sprink.title for sprink in sprinks)
+                characteristics['sprinks'] = sprinks
+                characteristics['sprinks_price'] += sum(sprink.price for sprink in sprinks)
                 text += '\n'
 
             if data.get('shape'):
@@ -115,8 +137,12 @@ def constructor(request):
                         shape_ru = 'прямоугольная'
                     case 'circle':
                         shape_ru = 'круг'
+                characteristics['shape_ru'] = shape_ru
                 text += f'форма уровней {shape_ru} \n'
-
+            if data.get('text_decoration'):
+                text_decoration = data.get('text_decoration')
+                characteristics['text_decoration'] = text_decoration
+                text += f'надпись на торте: {text_decoration}\n'
             if data.get('layers'):
                 layers = int(data['layers'])
                 match layers:
@@ -126,17 +152,28 @@ def constructor(request):
                         text += 'двухъярусный\n'
                     case 3:
                         text += 'трехъярусный\n'
+                characteristics['volume'] = 0
                 return_text = text
                 for i in range(1, layers + 1):
                     size = data.get(f"size-{i}").split('x')
+
                     if shape == 'rectangle':
                         return_text += f'ярус {i}  длина {size[0]} см. ширина {size[1]} см. высота {size[2]} см.\n'
-                        text += f'ярус {i} площадью {2*(int(size[0])+int(size[1]))*int(size[2])}\n'
+                        text += f'ярус {i} площадью {2 * (int(size[0]) + int(size[1])) * int(size[2])}\n'
                     if shape == 'circle':
                         return_text += f'ярус {i} диаметр {size[0]} см. высота {size[1]} см.\n'
-                        text += f'ярус {i} площадью {3.14*float(size[0])*(int(size[1])+int(size[0])/2)}\n'
-                context.update({'text': return_text, 'image_url': '/media/fl.jpg'})
+                        text += f'ярус {i} площадью {3.14 * float(size[0]) * (int(size[1]) + int(size[0]) / 2)}\n'
+                    characteristics['volume'] += volume_calc(shape, size)
+                characteristics['volume'] /= 10 ** 6
+                characteristics['weight'] = math.ceil(characteristics['volume'] * (characteristics['bisquit'].weight + 0.3*characteristics['filling'].weight))
+
+                characteristics['price'] = characteristics['volume']*(characteristics['bisquit'].weight*characteristics['bisquit'].price + 0.3*characteristics['filling'].weight*characteristics['filling'].price)
+                characteristics['price'] += characteristics.get('sprinks_price', 0) + characteristics.get('decoration_price', 0) + 100 if data.get('text_decoration') else 0
+                characteristics['price'] = math.ceil(characteristics['price'])
+                return_text += f"масса: {characteristics['weight']} кг.\n"
+                return_text += f"цена: {characteristics['price']} руб.\n"
                 push_and_get_photo(text)
+                context.update({'text': return_text, 'image_url': f'/media/fl.jpg?ts={int(time.time())}'})
                 print(text)
                 return render(request, 'main/templates/constructor.html',
                               context=context)
@@ -144,32 +181,32 @@ def constructor(request):
     return render(request, 'main/templates/constructor.html', context=context)
 
 
-def preview_constructor(request):
-    print(request.POST)
-    if request.method == 'POST':
-        data = request.POST
-        bisquit = Bisquit.objects.get(id=data['biscuit'])
-        filling = Filling.objects.get(id=data['filling'])
-        shape = data['shape']
-        support = 'длина ширина высота' if shape == 'rectangle' else 'диаметр*высота'
-        layers = int(data['layers'])
-        # 'layers': ['2'], 'biscuit': ['1'], 'filling': ['1'], 'shape': ['rectangle'], 'size-1': ['40x40x20'], 'size-2': ['30x20x10']}
-        text = ('Представь что ты визуализатор \n'
-                'Сделай картинку торта: \n'
-                f'Торт состоит из {layers} уровней \n'
-                f'формы уровней {shape} \n'
-                f'бисквит {bisquit.title}, начинка {filling.title} \n'
-                )
-        for i in range(1, layers + 1):
-            text += f'уровень {i} размером {data.get(f"size-{i}")} {support}\n'
-        text += 'учитывай указанные размеры уровней \n'
-        text += 'без обозначения размеров на картинке \n'
-        image_url = push_and_get_photo(text)
-        print(image_url)
-        context = {
-            'image_url': image_url,
-        }
-    return render(request, 'main/templates/constructor.html', context=context)
+# def preview_constructor(request):
+#     print(request.POST)
+#     if request.method == 'POST':
+#         data = request.POST
+#         bisquit = Bisquit.objects.get(id=data['biscuit'])
+#         filling = Filling.objects.get(id=data['filling'])
+#         shape = data['shape']
+#         support = 'длина ширина высота' if shape == 'rectangle' else 'диаметр*высота'
+#         layers = int(data['layers'])
+#         # 'layers': ['2'], 'biscuit': ['1'], 'filling': ['1'], 'shape': ['rectangle'], 'size-1': ['40x40x20'], 'size-2': ['30x20x10']}
+#         text = ('Представь что ты визуализатор \n'
+#                 'Сделай картинку торта: \n'
+#                 f'Торт состоит из {layers} уровней \n'
+#                 f'формы уровней {shape} \n'
+#                 f'бисквит {bisquit.title}, начинка {filling.title} \n'
+#                 )
+#         for i in range(1, layers + 1):
+#             text += f'уровень {i} размером {data.get(f"size-{i}")} {support}\n'
+#         text += 'учитывай указанные размеры уровней \n'
+#         text += 'без обозначения размеров на картинке \n'
+#         image_url = push_and_get_photo(text)
+#         print(image_url)
+#         context = {
+#             'image_url': image_url,
+#         }
+#     return render(request, 'main/templates/constructor.html', context=context)
 
 
 @login_required(login_url=reverse_lazy('auth'))

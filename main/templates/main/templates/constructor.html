@@ -54,7 +54,10 @@
             {% endfor %}
         </select>
         <br>
-
+        <div class="input-group">
+            <span class="input-group-text">текс на торте: </span>
+            <textarea class="form-control" aria-label="текс на торте:" maxlength="50" placeholder="не более 50 символов" name="text_decoration"></textarea>
+        </div>
         <div id="shape_div" style="display:none;">
             <label for="shape">Форма:</label>
             <select id="shape" name="shape" onchange="toggleSizeInputs()" required class="form-select">
@@ -67,7 +70,8 @@
         </div>
         <br>
         <button type="submit" class="btn btn-outline-secondary" name="action" value="order">Заказать</button>
-        <button type="submit" class="btn btn-outline-secondary" name="action" id="generate" value="generate">Генерация</button>
+        <button type="submit" class="btn btn-outline-secondary" name="action" id="generate" value="generate">Генерация
+        </button>
     </form>
     <div class="spinner-border text-info m-auto" id="loader" style="display:none;" role="status">
         <span style="">загрузка...</span>

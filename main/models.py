@@ -165,7 +165,7 @@ class Cart(models.Model):
 class Bisquit(models.Model):
     title = models.CharField('Название', max_length=30)
     descrition = models.TextField('Описание')
-    calorie = models.IntegerField('Ккал/100гр', default=0)
+    calorie = models.IntegerField('Ккал/кг', default=0)
     weight = models.IntegerField('Вес кг/м3', default=0)
     price = models.FloatField('цена за кг', default=0)
 
@@ -188,7 +188,7 @@ class Bisquit(models.Model):
 class Filling(models.Model):
     title = models.CharField('Название', max_length=30)
     descrition = models.TextField('Описание')
-    calorie = models.IntegerField('Ккал/100гр', default=0)
+    calorie = models.IntegerField('Ккал/кг', default=0)
     weight = models.IntegerField('Вес кг/м3', default=0)
     price = models.FloatField('цена за кг', default=0)
 
@@ -282,6 +282,7 @@ class Comment(models.Model):
 
 class Decoration(models.Model):
     title = models.CharField('название', max_length=100)
+    price = models.IntegerField('Цена', default=0)
 
     def __str__(self):
         return f'{self.title}'
@@ -293,6 +294,7 @@ class Decoration(models.Model):
 
 class Sprinkles(models.Model):
     title = models.CharField('название', max_length=100)
+    price = models.IntegerField('Цена', default=0)
 
     def __str__(self):
         return f'{self.title}'

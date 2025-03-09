@@ -1,12 +1,16 @@
-import shutil
-import requests
 import json
+import os
+import shutil
+
+import requests
+
 from diplom.settings import MEDIA_ROOT
+
 authorization_key = 'OTdkYzJhNWQtZDViZS00ZjliLTk2M2YtYTJlNzZkYzkyZTExOjI4YzRiZGFjLTkxNjItNDNkYS05OTkzLWRkNWIyY2VjZDcyOA=='
+
 
 def get_token():
     url = "https://ngw.devices.sberbank.ru:9443/api/v2/oauth"
-
 
     payload = {
         'scope': 'GIGACHAT_API_PERS'
@@ -24,12 +28,14 @@ def get_token():
     TOKEN = response.json()['access_token']
     return TOKEN
 
+
 def push_and_get_photo(text):
     TOKEN = get_token()
     url = "https://gigachat.devices.sberbank.ru/api/v1/chat/completions"
 
     payload = json.dumps({
-        "model": "GigaChat-Pro",
+        # "model": "GigaChat-Pro",
+        "model": "GigaChat",
         "messages": [
             {
                 "role": "system",
@@ -51,7 +57,6 @@ def push_and_get_photo(text):
 
     response = requests.request(
         "POST", url, headers=headers, data=payload, verify='russian_trusted_root_ca.cer')
-    print()
     data = response.json()
 
     # Извлекаем содержимое
@@ -74,6 +79,17 @@ def push_and_get_photo(text):
     response = requests.request(
         "GET", url, headers=headers, stream=True, verify='russian_trusted_root_ca.cer')
 
-    with open(f'{MEDIA_ROOT}/fl.jpg', 'wb') as out_file:
+    # Путь к файлу
+    file_path = f'{MEDIA_ROOT}/fl.jpg'
+
+    print(os.path.exists(file_path))
+    # Удаление файла, если он существует
+    if os.path.exists(file_path):
+        os.remove(file_path)
+
+    # Создание нового файла
+    with open(file_path, 'wb') as out_file:
         shutil.copyfileobj(response.raw, out_file)
-        return out_file
+
+    # Возвращаем путь к новому файлу или сам файл
+    # return out_file
