@@ -2,11 +2,11 @@
 {% load static %}
 {% load custom_filters %}
 {% block content %}
-
+{{data}}
 
 <h1>Заказ торта</h1>
 <div class="d-flex">
-    <form action="" method="POST" class="form-control w-75">
+    <form id="myForm" action="" method="POST" class="form-control w-75">
         {% csrf_token %}
         <label for="layers">Количество слоев:</label>
         <select id="layers" name="layers" required class="form-select" onchange="addLayer()">
@@ -83,14 +83,56 @@
         loader.style.display = 'block';
     });
     </script>
-    {% if image_url %}
-    <div class="p-3">
-        <p>{{text|linebreaksbr}}</p>
-        <h2>Вот ваше изображение:</h2>
-        <img src="{{ image_url }}" width="312" alt="Полученное изображение"/>
+    <div class="p-3 w-25" id="result">
     </div>
-    {% endif %}
 </div>
+
+<script>
+        document.getElementById('generate').addEventListener('click', function() {
+            event.preventDefault(); // Предотвращаем стандартное поведение формы
+
+            const formData = new FormData(document.getElementById('myForm')); // Получаем данные формы
+
+            fetch('/main/preview_constructor/', {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': getCookie('csrftoken') // Если используете CSRF
+                },
+                body: formData // Отправляем данные формы
+            })
+            .then(response => response.json())
+            .then(data => {
+                const resultDiv = document.getElementById('result');
+                    if (data.image_url) {
+                        resultDiv.innerHTML = `
+                                <p>${data.text}</p>
+                                <h2>Вот ваше изображение:</h2>
+                                <img src="${data.image_url}" width="312" alt="Полученное изображение"/>
+                        `;
+                        const loader = document.getElementById('loader');
+                        loader.style.display = 'none';
+        }
+            })
+            .catch(error => {
+                console.error('Ошибка:', error);
+            });
+        });
+
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+</script>
 
 <script>
     let formsetContainer = document.getElementById('formset-container');
