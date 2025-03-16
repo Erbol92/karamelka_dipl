@@ -211,7 +211,7 @@ class Filling(models.Model):
 class CartConstructor(models.Model):
     user = models.ForeignKey(
         User, verbose_name='пользователь', on_delete=models.CASCADE, null=False, related_name='carts_constr')
-    data = models.JSONField()  # Поле для хранения JSON-данных
+    data = models.TextField('данные')  # Поле для хранения JSON-данных
     quantity = models.IntegerField('количество', default=1)
     price = models.IntegerField('Цена', default=0)
 
@@ -248,9 +248,16 @@ class Order(models.Model):
     payment = models.JSONField('оплата', null=False)
     CHOICE = {'in_job': 'в работе',
               'ready': 'готов', }
+    payment_summ = models.IntegerField('сумма платежа',default=0)
     state = models.CharField('состояние', max_length=6, choices=CHOICE, default='in_job')
     status = models.BooleanField('отработан', default=False)
     status_at = models.DateTimeField('время готовности', null=True, blank=True)
+
+    def json_place(self):
+        return json.loads(self.place)
+
+    def json_payment(self):
+        return json.loads(self.payment)
 
     def __str__(self):
         return f'заказ {self.user} {self.quantity} x {self.product or self.consrt}'

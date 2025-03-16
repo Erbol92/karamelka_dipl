@@ -9,7 +9,6 @@ from django.urls import reverse_lazy
 
 from user_manager.models import UserProxy
 from .forms import CommentForm, DecorationFormSet
-from .gigachat import push_and_get_photo
 from .models import *
 
 
@@ -76,8 +75,7 @@ def volume_calc(form: str, size: list):
 
 
 def constructor(request):
-    text = ('Сделай картинку торта: \n'
-            )
+    text = ''
     bisquit, filling, support, layers, shape = '', '', '', '', ''
     shape_ru = shape
     return_text = ''
@@ -96,6 +94,7 @@ def constructor(request):
         'sprinkleses': sprinkles,
         'formset': formset,
     }
+    decoration_added = False
     if request.method == 'POST':
         data = request.POST
         if data.get('action') == 'order':
@@ -110,13 +109,15 @@ def constructor(request):
                 characteristics['filling'] = filling
 
             if formset.is_valid():
-                text += 'Украшения:\n'
                 characteristics['decoration'] = []
                 characteristics['decoration_price'] = 0
                 for form in formset:
                     decoration = form.cleaned_data.get('decoration')
                     quantity = form.cleaned_data.get('quantity')
                     if decoration and quantity:
+                        if not decoration_added:
+                            text += 'Украшения:\n'
+                            decoration_added = True
                         text += f'{decoration.title}: {quantity} штук\n'
                         characteristics['decoration'].append({decoration: quantity})
                         characteristics['decoration_price'] += decoration.price * quantity
@@ -165,11 +166,16 @@ def constructor(request):
                         text += f'ярус {i} площадью {3.14 * float(size[0]) * (int(size[1]) + int(size[0]) / 2)}\n'
                     characteristics['volume'] += volume_calc(shape, size)
                 characteristics['volume'] /= 10 ** 6
-                characteristics['weight'] = math.ceil(characteristics['volume'] * (characteristics['bisquit'].weight + 0.3*characteristics['filling'].weight))
+                characteristics['weight'] = math.ceil(characteristics['volume'] * (
+                            characteristics['bisquit'].weight + 0.3 * characteristics['filling'].weight))
 
-                characteristics['price'] = characteristics['volume']*(characteristics['bisquit'].weight*characteristics['bisquit'].price + 0.3*characteristics['filling'].weight*characteristics['filling'].price)
-                characteristics['price'] += characteristics.get('sprinks_price', 0) + characteristics.get('decoration_price', 0) + 100 if data.get('text_decoration') else 0
+                characteristics['price'] = characteristics['volume'] * (
+                            characteristics['bisquit'].weight * characteristics['bisquit'].price + 0.3 *
+                            characteristics['filling'].weight * characteristics['filling'].price)
+                characteristics['price'] += characteristics.get('sprinks_price', 0) + characteristics.get(
+                    'decoration_price', 0) + 100 if data.get('text_decoration') else 0
                 characteristics['price'] = math.ceil(characteristics['price'])
+                CartConstructor.objects.create(user=request.user,quantity=1, price=characteristics['price'], data=return_text)
                 return_text += f"масса: {characteristics['weight']} кг.\n"
                 return_text += f"цена: {characteristics['price']} руб.\n"
                 # push_and_get_photo(text)
@@ -181,7 +187,10 @@ def constructor(request):
             print(request.POST)
     return render(request, 'main/templates/constructor.html', context=context)
 
+
 from django.http import JsonResponse
+
+
 def preview_constructor(request):
     text = ('Сделай картинку торта: \n'
             )
@@ -189,6 +198,7 @@ def preview_constructor(request):
     shape_ru = shape
     return_text = ''
     characteristics = {}
+    decoration_added = False
     formset = DecorationFormSet(request.POST or None)
     if request.method == 'POST':
         data = request.POST
@@ -203,13 +213,15 @@ def preview_constructor(request):
             characteristics['filling'] = filling
 
         if formset.is_valid():
-            text += 'Украшения:\n'
             characteristics['decoration'] = []
             characteristics['decoration_price'] = 0
             for form in formset:
                 decoration = form.cleaned_data.get('decoration')
                 quantity = form.cleaned_data.get('quantity')
                 if decoration and quantity:
+                    if not decoration_added:
+                        text += 'Украшения:\n'
+                        decoration_added = True
                     text += f'{decoration.title}: {quantity} штук\n'
                     characteristics['decoration'].append({decoration: quantity})
                     characteristics['decoration_price'] += decoration.price * quantity
@@ -259,20 +271,19 @@ def preview_constructor(request):
                 characteristics['volume'] += volume_calc(shape, size)
             characteristics['volume'] /= 10 ** 6
             characteristics['weight'] = math.ceil(characteristics['volume'] * (
-                        characteristics['bisquit'].weight + 0.3 * characteristics['filling'].weight))
+                    characteristics['bisquit'].weight + 0.3 * characteristics['filling'].weight))
 
             characteristics['price'] = characteristics['volume'] * (
-                        characteristics['bisquit'].weight * characteristics['bisquit'].price + 0.3 *
-                        characteristics['filling'].weight * characteristics['filling'].price)
+                    characteristics['bisquit'].weight * characteristics['bisquit'].price + 0.3 *
+                    characteristics['filling'].weight * characteristics['filling'].price)
             characteristics['price'] += characteristics.get('sprinks_price', 0) + characteristics.get(
                 'decoration_price', 0) + 100 if data.get('text_decoration') else 0
             characteristics['price'] = math.ceil(characteristics['price'])
             return_text += f"масса: {characteristics['weight']} кг.\n"
             return_text += f"цена: {characteristics['price']} руб.\n"
-            push_and_get_photo(text)
+            # push_and_get_photo(text)
             context = {'text': return_text, 'image_url': f'/media/fl.jpg?ts={int(time.time())}'}
             return JsonResponse(context)
-            # return render(request, 'main/templates/constructor.html',context=context)
 
 
 @login_required(login_url=reverse_lazy('auth'))
@@ -323,7 +334,7 @@ def cart_view(request):
                 cart = Cart.objects.get(id=int(cart_id))
                 orders.append(
                     Order(user=request.user, product=cart.product, quantity=cart.quantity, place=place, payment=pay,
-                          num_order=current_order_num))
+                          num_order=current_order_num, payment_summ=cart.get_sum()))
             Order.objects.bulk_create(orders)
             Cart.objects.filter(id__in=select_cart).delete()
 
@@ -333,7 +344,7 @@ def cart_view(request):
                 cart = CartConstructor.objects.get(id=int(cart_id))
                 orders.append(
                     Order(user=request.user, consrt=cart.data, quantity=cart.quantity, place=place, payment=pay,
-                          num_order=current_order_num))
+                          num_order=current_order_num, payment_summ=cart.get_sum()))
             Order.objects.bulk_create(orders)
             CartConstructor.objects.filter(id__in=select_consrt_cart).delete()
         return redirect('cart_view')
