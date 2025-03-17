@@ -37,6 +37,7 @@ class Profile(models.Model):
         return f'{MEDIA_ROOT}/profile/{self.prof}/{self.photo.name}'
     prof = models.OneToOneField(
         User, verbose_name='пользователь', on_delete=models.CASCADE, null=False)
+    b_date = models.DateField('дата рождения', null=True, blank=True)
     phone = models.CharField('№ тел.', max_length=16, null=True)
     address = models.CharField('адрес', max_length=120, null=True)
     photo = models.ImageField('фото', upload_to=image_path, null=True, blank=True)

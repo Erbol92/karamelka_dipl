@@ -8,7 +8,7 @@
 <div class="d-flex">
     <form id="myForm" action="" method="POST" class="form-control w-75">
         {% csrf_token %}
-        <label for="layers">Количество слоев:</label>
+        <label for="layers">Количество ярсуов:</label>
         <select id="layers" name="layers" required class="form-select" onchange="addLayer()">
             <option selected disabled>выберите</option>
             <option value="1">1</option>
@@ -206,7 +206,7 @@
         newLayer.id = `layer-${i}`;
         newLayer.innerHTML = `
             <br>
-            <h4>уровень ${i}</h4>
+            <h4>ярус ${i}</h4>
             <div id="rectangle-${i}" class="size-inputs form-select" style="display: none;">
                 <label for="size-${i}">Размер (a x b x h), см:</label>
                 <select id="size-${i}" name="size-${i}" required>

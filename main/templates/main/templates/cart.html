@@ -17,6 +17,11 @@
     #cardInput .input-group-sm {
         width: fit-content;
     }
+
+    .suggestions-wrapper {
+    margin-left:25px!important;
+    }
+
 </style>
 <div class="d-flex mb-3">
     <button type="button" class="btn btn-info fw-bold" onclick="Hide('cart_form')">корзина</button>
@@ -36,16 +41,14 @@
         {% if user.carts.all %}
         {% for cart in user.carts.all %}
         <div class="row">
-
             <div class="col">
                 <input type="checkbox" name="select_cart" class="select_cart" value={{cart.id}}>
                 <a href="{{cart.product.get_absolute_url}}" onmouseover="displayImg({{cart.id}})"
-                    onmouseleave="hideImg({{cart.id}})">{{cart.product.name_product}}</a>
+                   onmouseleave="hideImg({{cart.id}})">{{cart.product.name_product}}</a>
             </div>
             <div id="{{cart.id}}" style="width: 128px; display: none;" class="position-absolute">
                 <img src="{{cart.product.image.url}}" style="object-fit: contain;" class="rounded-pill">
             </div>
-
             <div class="col">{{cart.product.price|floatformat:"2g"}}</div>
             <div class="col">{{cart.quantity}}</div>
             <div class="col">{{cart.get_pos_sum|floatformat:"2g"}}</div>
@@ -57,50 +60,26 @@
         </div>
         {% endfor %}
         {% endif %}
-        {% if user.carts_constr.all %} %}
-        {% for cc in user.carts_constr.all %}
-        {% with cc.get_data as data %}
+        {% if user.carts_constr.all %}
+        {% for cart_c in user.carts_constr.all %}
         <div class="row">
-            <div class="col text-start" style="line-height: 0.7;">
-                <div class="d-flex">
-                    <div>
-                        <input type="checkbox" name="select_consrt_cart" class="select_consrt_cart" value={{cc.id}}>
-                    </div>
-                    <div>
-
-                        <p class="fw-bold">количество слоев: {{data.layers_size}}</p>
-                        {% for layer in data.layers %}
-                        <p class="fw-bold">слой {{layer.step}}</p>
-                        <p class="ms-2">бисквит: {{layer.bisquit}}</p>
-                        <p class="ms-2">форма: {{layer.form}}</p>
-                        {% for key,val in layer.size.items %}
-                        <p class="ms-3">{{key}} {{val|floatformat:2}} см.</p>
-                        {% endfor %}
-                        {% endfor %}
-                        <p>начинка: {{data.filling}}</p>
-                        <p>вес торта: {{data.full_weight}} кг</p>
-                        <p>ккал в торте: {{data.ful_calorie}} ккал</p>
-                        <p>гостей: {{data.guest}}</p>
-                    </div>
-                </div>
-
+            <div class="col text-start">
+                <input type="checkbox" name="select_consrt_cart" class="select_cart" value={{cart_c.id}}>
+                <p><small>{{cart_c.data|linebreaksbr|safe}}</small></p>
+            </div>
+            <div class="col">{{cart_c.price|floatformat:"2g"}}</div>
+            <div class="col">{{cart_c.quantity}}</div>
+            <div class="col">
+                <p>{{cart_c.get_sum|floatformat:"2g"}}</p>
             </div>
             <div class="col">
-                <p>{{cc.price|floatformat:"2g"}}</p>
-            </div>
-            <div class="col">
-                <p>{{cc.quantity}}</p>
-            </div>
-            <div class="col">
-                <p>{{cc.get_sum|floatformat:"2g"}}</p>
-            </div>
-            <div class="col">
-                <a href="{% url 'add_quant_cart' type='constr' cart_id=cc.id %}"><i class="bi bi-patch-plus"></i></a>
+                <a href="{% url 'add_quant_cart' type='constr' cart_id=cart_c.id %}"><i
+                        class="bi bi-patch-plus"></i></a>
                 <span> </span>
-                <a href="{% url 'del_from_cart' type='constr' cart_id=cc.id %}"><i class="bi bi-patch-minus"></i></a>
+                <a href="{% url 'del_from_cart' type='constr' cart_id=cart_c.id %}"><i
+                        class="bi bi-patch-minus"></i></a>
             </div>
         </div>
-        {% endwith %}
         {% endfor %}
         {% endif %}
         <p class="text-end"><span class="fw-bold">всего: </span>{{user.sum_cart|floatformat:"2g"}} руб.</p>
@@ -116,13 +95,13 @@
             </div>
 
 
-            <div id="addressInput" class="hidden">
+            <div id="addressInput" class="hidden w-50 p-3">
                 <div class="input-group input-group-sm mb-3">
                     <div class="input-group-prepend">
                         <span class="input-group-text" id="inputGroup-sizing-sm">Введите адрес:</span>
                     </div>
                     <input type="text" class="form-control" aria-label="Small" aria-describedby="inputGroup-sizing-sm"
-                        id="address" name="address" placeholder="Ваш адрес">
+                           id="address" name="address" placeholder="Ваш адрес">
                 </div>
             </div>
 
@@ -142,8 +121,8 @@
                     <div class="input-group-prepend">
                         <span class="input-group-text" id="inputGroup-sizing-sm">Номер карты:</span>
                     </div>
-                    <input type="number" class="form-control" aria-label="Small" aria-describedby="inputGroup-sizing-sm"
-                        name="cardNumber" placeholder="Номер карты" maxlength="16">
+                    <input type="text" class="form-control" aria-label="Small" aria-describedby="inputGroup-sizing-sm"
+                           name="cardNumber" placeholder="Номер карты" id="card-number">
                 </div>
 
                 <div class="input-group input-group-sm mb-3">
@@ -151,21 +130,23 @@
                         <span class="input-group-text" id="inputGroup-sizing-sm">Срок действия:</span>
                     </div>
                     <input type="text" class="form-control" aria-label="Small" aria-describedby="inputGroup-sizing-sm"
-                        name="expiryDate" placeholder="ММ/ГГ" maxlength="5">
+                           name="expiryDate" placeholder="ММ/ГГ" maxlength="5" id="expiryDate">
                 </div>
                 <div class="input-group input-group-sm mb-3">
                     <div class="input-group-prepend">
                         <span class="input-group-text" id="inputGroup-sizing-sm">CVV:</span>
                     </div>
-                    <input type="text" class="form-control" aria-label="Small" aria-describedby="inputGroup-sizing-sm"
-                        name="cvv" placeholder="CVV" maxlength="3">
+                    <input type="password" class="form-control" aria-label="Small"
+                           aria-describedby="inputGroup-sizing-sm"
+                           name="cvv" placeholder="CVV" maxlength="3">
                 </div>
             </div>
         </div>
 
         <div class="d-flex justify-content-center">
             <button type="submit" class="btn btn-outline-primary me-3" id="btn_order"
-                style="display: none;">заказать</button>
+                    style="display: none;">заказать
+            </button>
             <a href="{% url 'del_cart' %}" class="btn btn-outline-success ms-3">очистить корзину</a>
         </div>
     </form>
@@ -178,42 +159,34 @@
         {% regroup orders by created_at|date:"d-m-Y H:i" as orders_list %}
         {% for date in orders_list %}
         <p class="text-secondary text-end">{{date.grouper}}</p>
-        <p>заказ №  {{date.list.0.num_order}}</p>
+        <p>заказ № {{date.list.0.num_order}}</p>
         <div class="row border p-3 mb-2">
             {% for order in date.list %}
-
             <div class="row">
                 <div class="col-8">
                     <div class="row">
                         <div class="col">
                             <span>{{order.product|default:''}}</span>
+
                             {% if order.consrt %}
-                            {% with order.get_data as data %}
                             <span data-toggle="tooltip" title="
-                        <div class='text-start'>
-                        {% for layer in data.layers %}
-
-                        <p>{{layer.bisquit}}</p>
-                        <p>начинка: {{data.filling}}</p>
-                        </span>
-                        {% endfor %}
-                        <p>вес торта: {{data.full_weight|floatformat:2}} кг</p>
-                        </div>
-                        ">на заказ: </span>
-
-                            {% endwith %}
+                        <p>{{order.consrt}}</p>
+                        ">торт на заказ</span>
                             {% endif %}
                         </div>
                         <div class="col">
                             <span> * {{order.quantity}} шт.</span>
+                        </div>
+                        <div class="col">
+                            <span> {{order.payment_summ}} руб.</span>
                         </div>
                     </div>
                 </div>
             </div>
             {% endfor %}
             <div class="text-start">
+                {{date.list.0.json_place.delivery}}
                 {{date.list.0.created_at}}
-
                 <p>способ: {{date.list.0.json_place.delivery}} {{date.list.0.json_place.address}}</p>
                 <p>оплата: {{date.list.0.json_payment.payment}}</p>
                 <p class="text-info">состояние: {{ date.list.0.get_state_display }}</p>
@@ -300,6 +273,73 @@
     // Добавляем обработчик события для каждого чекбокса
     checkboxes.forEach(checkbox => {
         checkbox.addEventListener('change', checkCheckboxes);
+    });
+</script>
+<script>
+    const expiryDateInput = document.getElementById('expiryDate');
+    const cardNumberInput = document.getElementById('card-number');
+
+    // Маска для ввода даты
+    expiryDateInput.addEventListener('input', function (e) {
+        let value = e.target.value.replace(/\D/g, ''); // Удаляем все нецифровые символы
+        if (value.length > 2) {
+            value = value.slice(0, 2) + '/' + value.slice(2, 4);
+        }
+        e.target.value = value;
+    });
+
+    // Маска для ввода номера карты
+    cardNumberInput.addEventListener('input', function (e) {
+        // Удаляем все нецифровые символы, кроме пробелов
+        let value = e.target.value.replace(/[^\d]/g, ''); // Удаляем все нецифровые символы
+        let formattedValue = '';
+
+        // Форматируем номер карты с пробелами
+        for (let i = 0; i < value.length; i++) {
+            if (i > 0 && i % 4 === 0) {
+                formattedValue += ' '; // Добавляем пробел каждые 4 цифры
+            }
+            formattedValue += value[i];
+        }
+        // Ограничиваем ввод до 16 цифр
+        if (formattedValue.replace(/\s/g, '').length > 16) {
+            formattedValue = formattedValue.slice(0, -1); // Удаляем последнюю введенную цифру
+        }
+        e.target.value = formattedValue; // Устанавливаем отформатированное значение
+    });
+
+    // Обработка отправки формы
+    document.getElementById('cart_form').addEventListener('submit', function (e) {
+        e.preventDefault(); // Отменяем стандартное поведение формы
+
+        // Имитация успешной или неудачной оплаты
+        const isSuccess = Math.random() < 0.5; // 50% шанс на успех
+
+        if (isSuccess) {
+            alert('Оплата прошла успешно!'); // Успешная оплата
+            // Здесь можно добавить логику для обработки успешной оплаты
+            // Например, отправка формы на сервер
+            this.submit(); // Отправляем форму
+        } else {
+            alert('Оплата не удалась. Пожалуйста, попробуйте еще раз.'); // Неудачная оплата
+        }
+    });
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/suggestions-jquery@21.12.0/dist/js/jquery.suggestions.min.js"></script>
+<script>
+    $("#address").suggestions({
+        token: "93663fb5e271e7fb777835e7489ff93563d87426",
+        type: "ADDRESS",
+        constraints: {
+            locations: [{ region: "Байконур" },]
+
+            },
+
+            /* Вызывается, когда пользователь выбирает одну из подсказок */
+            onSelect: function(suggestion) {
+                console.log(suggestion);
+            }
     });
 </script>
 {% endblock %}

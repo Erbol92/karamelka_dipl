@@ -4,7 +4,6 @@
 {% block content %}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
 <link href="http://cdn.jsdelivr.net/npm/suggestions-jquery@22.6.0/dist/css/suggestions.min.css" rel="stylesheet" />
-<script src="http://cdn.jsdelivr.net/npm/suggestions-jquery@22.6.0/dist/js/jquery.suggestions.min.js"></script>
 
 <div class="bg-light m-auto" style="max-width: 980px;">
     <h3 class="h3 mb-3 fw-bold text-center">{{object}}</h3>
@@ -15,15 +14,23 @@
     </form>
 </div>
 {% webpush_button with_class="btn btn-outline-info" %}
+<script src="https://cdn.jsdelivr.net/npm/suggestions-jquery@21.12.0/dist/js/jquery.suggestions.min.js"></script>
 <script>
-
-    // Функция для обработки ввода
-    $("#id_address").suggestions({
+    $("#address").suggestions({
         token: "93663fb5e271e7fb777835e7489ff93563d87426",
         type: "ADDRESS",
-    });
+        constraints: {
+            locations: [{ region: "Байконур" },]
 
+            },
+
+            /* Вызывается, когда пользователь выбирает одну из подсказок */
+            onSelect: function(suggestion) {
+                console.log(suggestion);
+            }
+    });
 </script>
+
  <script>
         const phoneInput = document.getElementById('id_phone');
 
