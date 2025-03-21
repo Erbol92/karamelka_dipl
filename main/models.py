@@ -168,6 +168,7 @@ class Bisquit(models.Model):
     calorie = models.IntegerField('Ккал/кг', default=0)
     weight = models.IntegerField('Вес кг/м3', default=0)
     price = models.FloatField('цена за кг', default=0)
+    cooking_time = models.IntegerField('время готовности/минут', default=40)
 
     def bisquit_to_dict(self):
         return json.dumps({
@@ -191,6 +192,7 @@ class Filling(models.Model):
     calorie = models.IntegerField('Ккал/кг', default=0)
     weight = models.IntegerField('Вес кг/м3', default=0)
     price = models.FloatField('цена за кг', default=0)
+    cooking_time = models.IntegerField('время готовности/минут', default=40)
 
     def __str__(self):
         return f'{self.title}'
@@ -211,9 +213,10 @@ class Filling(models.Model):
 class CartConstructor(models.Model):
     user = models.ForeignKey(
         User, verbose_name='пользователь', on_delete=models.CASCADE, null=False, related_name='carts_constr')
-    data = models.TextField('данные')  # Поле для хранения JSON-данных
+    data = models.TextField('данные')
     quantity = models.IntegerField('количество', default=1)
     price = models.IntegerField('Цена', default=0)
+    cook_time = models.IntegerField('время приготовления',default=0)
 
     def get_sum(self):
         return self.price * self.quantity
@@ -262,6 +265,9 @@ class Order(models.Model):
     def __str__(self):
         return f'заказ {self.user} {self.quantity} x {self.product or self.consrt}'
 
+    def get_cook_time(self):
+        return self.consrt.cook_time
+
     class Meta:
         verbose_name = 'Заказ'
         verbose_name_plural = 'Заказы'
@@ -309,3 +315,4 @@ class Sprinkles(models.Model):
     class Meta:
         verbose_name = 'посыпка'
         verbose_name_plural = 'посыпки'
+

@@ -6,7 +6,7 @@
 
 <h1>Заказ торта</h1>
 <div class="d-flex">
-    <form id="myForm" action="" method="POST" class="form-control w-75">
+    <form id="myForm" action="" method="POST" class="form-control w-50">
         {% csrf_token %}
         <label for="layers">Количество ярсуов:</label>
         <select id="layers" name="layers" required class="form-select" onchange="addLayer()">
@@ -83,7 +83,7 @@
         loader.style.display = 'block';
     });
     </script>
-    <div class="p-3 w-25" id="result">
+    <div class="p-3 w-50" id="result">
     </div>
 </div>
 
@@ -105,7 +105,7 @@
                 const resultDiv = document.getElementById('result');
                     if (data.image_url) {
                         resultDiv.innerHTML = `
-                                <p>${data.text}</p>
+                                <pre>${data.text}</pre>
                                 <h2>Вот ваше изображение:</h2>
                                 <img src="${data.image_url}" width="312" alt="Полученное изображение"/>
                         `;

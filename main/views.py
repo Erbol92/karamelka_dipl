@@ -1,18 +1,25 @@
 import math
 import time
-
+from django.db.models import Sum
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.db.models import Max
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse_lazy
+from django.http import JsonResponse
 
 from user_manager.models import UserProxy
 from .forms import CommentForm, DecorationFormSet
 from .models import *
+from .gigachat import push_and_get_photo
 
 
 # Create your views here.
+def convert_minutes_to_hours_and_minutes(total_minutes):
+    hours = total_minutes // 60  # Целочисленное деление для получения часов
+    minutes = total_minutes % 60  # Остаток от деления для получения минут
+    return hours, minutes
+
 
 def home(request):
     object_list = Products.objects.all()
@@ -167,20 +174,32 @@ def constructor(request):
                     characteristics['volume'] += volume_calc(shape, size)
                 characteristics['volume'] /= 10 ** 6
                 characteristics['weight'] = math.ceil(characteristics['volume'] * (
-                            characteristics['bisquit'].weight + 0.3 * characteristics['filling'].weight))
+                        characteristics['bisquit'].weight + 0.3 * characteristics['filling'].weight))
 
                 characteristics['price'] = characteristics['volume'] * (
-                            characteristics['bisquit'].weight * characteristics['bisquit'].price + 0.3 *
-                            characteristics['filling'].weight * characteristics['filling'].price)
+                        characteristics['bisquit'].weight * characteristics['bisquit'].price + 0.3 *
+                        characteristics['filling'].weight * characteristics['filling'].price)
                 characteristics['price'] += characteristics.get('sprinks_price', 0) + characteristics.get(
                     'decoration_price', 0) + 100 if data.get('text_decoration') else 0
                 characteristics['price'] = math.ceil(characteristics['price'])
-                CartConstructor.objects.create(user=request.user,quantity=1, price=characteristics['price'], data=return_text)
+                cook_time = bisquit.cooking_time + filling.cooking_time
+                print(cook_time)
+                orders_time = Order.objects.filter(state='in_job').aggregate(total=Sum('consrt__cook_time')).get('total')
+                print(Order.objects.filter(state='in_job').values_list('consrt__cook_time',flat=True))
+                if orders_time:
+                    total_cook_time_value = cook_time + orders_time
+                else:
+                    total_cook_time_value = cook_time
+                print(total_cook_time_value)
+                CartConstructor.objects.create(user=request.user, quantity=1, price=characteristics['price'],
+                                               data=return_text, cook_time=total_cook_time_value)
                 return_text += f"масса: {characteristics['weight']} кг.\n"
                 return_text += f"цена: {characteristics['price']} руб.\n"
                 # push_and_get_photo(text)
                 context.update({'text': return_text})
                 print(text)
+
+
                 return render(request, 'main/templates/constructor.html',
                               context=context)
         else:
@@ -188,12 +207,8 @@ def constructor(request):
     return render(request, 'main/templates/constructor.html', context=context)
 
 
-from django.http import JsonResponse
-
-
 def preview_constructor(request):
-    text = ('Сделай картинку торта: \n'
-            )
+    text = ''
     bisquit, filling, support, layers, shape = '', '', '', '', ''
     shape_ru = shape
     return_text = ''
@@ -281,7 +296,13 @@ def preview_constructor(request):
             characteristics['price'] = math.ceil(characteristics['price'])
             return_text += f"масса: {characteristics['weight']} кг.\n"
             return_text += f"цена: {characteristics['price']} руб.\n"
-            push_and_get_photo(text)
+            # push_and_get_photo('Сделай картинку торта: \n'+text)
+            cook_time = bisquit.cooking_time + filling.cooking_time
+            hour, minutes = convert_minutes_to_hours_and_minutes(cook_time)
+            return_text += f'время готовности {hour}ч.:{minutes} мин.'
+            orders = Order.objects.filter(state='in_job').values_list('consrt__cook_time', flat=True)
+            print(orders)
+
             context = {'text': return_text, 'image_url': f'/media/fl.jpg?ts={int(time.time())}'}
             return JsonResponse(context)
 
@@ -295,7 +316,6 @@ def cart_view(request):
     }
     data = request.POST or None
     if data:
-        print(data)
         select_cart = data.getlist('select_cart')
         select_consrt_cart = data.getlist('select_consrt_cart')
         place, pay = {}, {}
