@@ -22,11 +22,10 @@ class SignupForm(UserCreationForm):
 class ProfileForm(forms.ModelForm):
     first_name = forms.CharField(max_length=30, required=False, label='Имя')
     last_name = forms.CharField(max_length=30, required=False, label='Фамилия')
-    b_date = forms.DateField(label='дата рождения', required=False, widget=forms.DateInput(attrs={'type': 'date'}))
 
     class Meta:
         model = Profile
-        fields = ('first_name', 'last_name', 'b_date', 'phone', 'address', 'photo',)
+        fields = ('first_name', 'last_name', 'b_date', 'phone', 'address', 'photo','b_date_last_change',)
 
     def __init__(self, *args, **kwargs):
         user = kwargs.pop('user', None)
@@ -34,6 +33,10 @@ class ProfileForm(forms.ModelForm):
         if user:
             self.fields['first_name'].initial = user.first_name
             self.fields['last_name'].initial = user.last_name
+        if self.instance.pk:
+            self.fields['b_date_last_change'].initial = kwargs['instance'].b_date_last_change
+            self.fields['b_date_last_change'].widget.attrs['disabled'] = 'disabled'
+
 
     def save(self, commit=True):
         profile = super(ProfileForm, self).save(commit=False)

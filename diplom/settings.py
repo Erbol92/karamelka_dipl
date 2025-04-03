@@ -45,10 +45,10 @@ INSTALLED_APPS = [
 ]
 WEBPUSH_SETTINGS = {
 "VAPID_ADMIN_EMAIL": "erbolbaik1@gmail.com",
-"VAPID_PUBLIC_KEY": "BI_CXYgA15Q_ZFsITW6eMUS5J6XRjMll6xf5NlAPmdNHJgxF_fKUM8vcUJrBHfy8g7d33J_1r2l4Ih2jRXEWnow",
-"VAPID_PRIVATE_KEY": "_Oy-hmiL0LZwnYUcOZZpRapVZT7NqaBRnY2X0yOj2XM"
+"VAPID_PUBLIC_KEY": "BL1RIZy_16ejrYct1lGxD10Ad4VDMmLDQ_FjsxkOg7XnqnLZK8yZv7cY_-rPOus7l--tyvA6IHQLzyCVuvjCs80",
+"VAPID_PRIVATE_KEY": "2Iu_xQi59JMYL8PuFzzMvwwUBTqO8qU6EW9YhoNEn-Q"
 }
-
+#https://web-push-codelab.glitch.me/
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',

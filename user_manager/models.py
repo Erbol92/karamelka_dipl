@@ -6,11 +6,18 @@ from django.core.files.base import ContentFile
 from django.contrib.auth.models import User
 from diplom.settings import MEDIA_ROOT
 from main.models import Cart, Products
+from datetime import datetime
 # Create your models here.
 
 class UserProxy(User):
     class Meta:
         proxy = True
+
+    def check_discount(self):
+        profile = self.profile
+        if self.profile.b_date:
+            return profile.b_date.day == datetime.now().day and profile.b_date.month == datetime.now().month
+        return False
 
     def add_cart(self, product):
         update_values = {
@@ -36,11 +43,12 @@ class Profile(models.Model):
     def image_path(self, instance):
         return f'{MEDIA_ROOT}/profile/{self.prof}/{self.photo.name}'
     prof = models.OneToOneField(
-        User, verbose_name='пользователь', on_delete=models.CASCADE, null=False)
+        User, verbose_name='пользователь', on_delete=models.CASCADE, null=False, related_name='profile')
     b_date = models.DateField('дата рождения', null=True, blank=True)
     phone = models.CharField('№ тел.', max_length=16, null=True)
     address = models.CharField('адрес', max_length=120, null=True)
     photo = models.ImageField('фото', upload_to=image_path, null=True, blank=True)
+    b_date_last_change = models.DateField('дата изменения д.р.', null=True, blank=True)
 
     def compress_logo(self, image):
         im = Image.open(image)

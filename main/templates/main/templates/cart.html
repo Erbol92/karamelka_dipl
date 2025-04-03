@@ -1,10 +1,13 @@
 {% extends 'main/templates/base.html' %}
 {% load custom_filters %}
 {% block content %}
+
 <script src="https://unpkg.com/@popperjs/core@2/dist/umd/popper.js"></script>
 <script src="https://unpkg.com/@popperjs/core@2"></script>
 <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
 <style>
+    .suggestions-promo {
+    display:none!important;}
     .row .col {
         border-style: groove;
         text-align: center;
@@ -41,17 +44,29 @@
         {% if user.carts.all %}
         {% for cart in user.carts.all %}
         <div class="row">
-            <div class="col">
+            <div class="col"  onmouseover="displayImg({{cart.id}})"
+                   onmouseleave="hideImg({{cart.id}})">
                 <input type="checkbox" name="select_cart" class="select_cart" value={{cart.id}}>
-                <a href="{{cart.product.get_absolute_url}}" onmouseover="displayImg({{cart.id}})"
-                   onmouseleave="hideImg({{cart.id}})">{{cart.product.name_product}}</a>
+                <a href="{{cart.product.get_absolute_url}}">{{cart.product.name_product}}</a>
             </div>
             <div id="{{cart.id}}" style="width: 128px; display: none;" class="position-absolute">
-                <img src="{{cart.product.image.url}}" style="object-fit: contain;" class="rounded-pill">
+                <img src="{{cart.product.image.url}}" style="width: 256px;object-fit: contain;" class="rounded-pill">
             </div>
-            <div class="col">{{cart.product.price|floatformat:"2g"}}</div>
+            <div class="col">
+                {% if not user.check_discount %}
+                <strong> {{cart.product.price}} </strong>руб.
+                {% else %}
+                <s>{{cart.product.price}}</s> {{cart.product.price|discount}}руб.
+                {% endif %}
+            </div>
             <div class="col">{{cart.quantity}}</div>
-            <div class="col">{{cart.get_pos_sum|floatformat:"2g"}}</div>
+            <div class="col">
+                {% if not user.check_discount %}
+                <strong> {{cart.get_pos_sum}} </strong>руб.
+                {% else %}
+                <s>{{cart.get_pos_sum}}</s> {{cart.get_pos_sum|discount}}руб.
+                {% endif %}
+            </div>
             <div class="col">
                 <a href="{% url 'add_quant_cart' type='prod' cart_id=cart.id  %}"><i class="bi bi-patch-plus"></i></a>
                 <span> </span>
@@ -67,10 +82,20 @@
                 <input type="checkbox" name="select_consrt_cart" class="select_cart" value={{cart_c.id}}>
                 <p><small>{{cart_c.data|linebreaksbr|safe}}</small></p>
             </div>
-            <div class="col">{{cart_c.price|floatformat:"2g"}}</div>
+            <div class="col">
+                {% if not user.check_discount %}
+                <strong> {{cart_c.price}} </strong>руб.
+                {% else %}
+                <s>{{cart_c.price}}</s> {{cart_c.price|discount}}руб.
+                {% endif %}
+            </div>
             <div class="col">{{cart_c.quantity}}</div>
             <div class="col">
-                <p>{{cart_c.get_sum|floatformat:"2g"}}</p>
+                {% if not user.check_discount %}
+                <strong> {{cart_c.get_sum}} </strong>руб.
+                {% else %}
+                <s>{{cart_c.get_sum}}</s> {{cart_c.get_sum|discount}}руб.
+                {% endif %}
             </div>
             <div class="col">
                 <a href="{% url 'add_quant_cart' type='constr' cart_id=cart_c.id %}"><i
@@ -82,7 +107,13 @@
         </div>
         {% endfor %}
         {% endif %}
-        <p class="text-end"><span class="fw-bold">всего: </span>{{user.sum_cart|floatformat:"2g"}} руб.</p>
+        <p class="text-end"><span class="fw-bold">всего: </span>
+            {% if not user.check_discount %}
+            <strong> {{user.sum_cart}} </strong>руб.
+            {% else %}
+            <s>{{user.sum_cart}}</s> {{user.sum_cart|discount}}руб.
+            {% endif %}
+        </p>
         <div id="card" style="display: none;">
             <div class="input-group mb-3">
                 <div class="input-group-prepend">
@@ -311,7 +342,9 @@
     // Обработка отправки формы
     document.getElementById('cart_form').addEventListener('submit', function (e) {
         e.preventDefault(); // Отменяем стандартное поведение формы
+        const paymentSelect = document.getElementById('payment');
 
+        if (paymentSelect.value === 'безналичная') {
         // Имитация успешной или неудачной оплаты
         const isSuccess = Math.random() < 0.5; // 50% шанс на успех
 
@@ -323,6 +356,10 @@
         } else {
             alert('Оплата не удалась. Пожалуйста, попробуйте еще раз.'); // Неудачная оплата
         }
+        } else {
+        // Если выбрана "наличная", просто отправляем форму
+        this.submit();
+    }
     });
 </script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>

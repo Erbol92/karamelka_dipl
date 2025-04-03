@@ -1,5 +1,6 @@
 {% extends 'main/templates/base.html' %}
 {% load crispy_forms_tags %}
+{% load custom_filters %}
 {% block content %}
 <style>
     .text-muted {
@@ -16,6 +17,13 @@
             -{{object.category}}-
         </p>
         <p><span class="fw-bolder">Описание: </span>{{object.description|linebreaks}}</p>
+        <p> Цена:
+                {% if not user.check_discount %}
+                <strong> {{object.price}} </strong>руб.
+                {% else %}
+                <s>{{object.price}}</s> {{object.price|discount}}руб.
+                {% endif %}
+            </p>
         <div style="line-height: 0.5;">
             <p>состав:</p>
             {% for ingridient in object.get_ingridients %}

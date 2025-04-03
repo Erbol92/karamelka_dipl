@@ -1,4 +1,6 @@
 {% extends 'main/templates/base.html' %}
+{% load custom_filters %}
+
 {% block content %}
 <div style="background-image: linear-gradient(to right, rgba(109, 179, 242, .6), rgba(109, 179, 242, .4)),url({{MEDIA_URL}}/bg.jpg); width: 100%; height: 40%; background-size: contain;"
     class=" text-white rounded-3 d-flex">
@@ -33,7 +35,13 @@
         <div class="product-tile-info">
             <h3>{{object}}</h3>
             <p>{{object.description|truncatechars:150|linebreaks}}</p>
-            <p><strong>Цена: {{object.price}} </strong>руб.</p>
+            <p> Цена:
+                {% if not user.check_discount %}
+                <strong> {{object.price}} </strong>руб.
+                {% else %}
+                <s>{{object.price}}</s> {{object.price|discount}}руб.
+                {% endif %}
+            </p>
         </div>
         <div class="product-tile-actions">
             <a href="{% url 'add_to_cart' product_id=object.id %}" class="add-to-cart">добавить в корзину</a>

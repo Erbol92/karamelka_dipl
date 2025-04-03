@@ -16,7 +16,7 @@
 {% webpush_button with_class="btn btn-outline-info" %}
 <script src="https://cdn.jsdelivr.net/npm/suggestions-jquery@21.12.0/dist/js/jquery.suggestions.min.js"></script>
 <script>
-    $("#address").suggestions({
+    $("#id_address").suggestions({
         token: "93663fb5e271e7fb777835e7489ff93563d87426",
         type: "ADDRESS",
         constraints: {
@@ -60,5 +60,28 @@
 
             e.target.value = formattedInput;
         });
+    </script>
+<script>
+        function setDateMask(input) {
+            input.addEventListener('input', function (e) {
+                // Удаляем все, кроме цифр
+                let value = this.value.replace(/\D/g, '');
+
+                // Форматируем как дд.мм.гггг
+                if (value.length >= 2) {
+                    value = value.slice(0, 2) + '.' + value.slice(2);
+                }
+                if (value.length >= 5) {
+                    value = value.slice(0, 5) + '.' + value.slice(5, 9);
+                }
+
+                this.value = value;
+            });
+        }
+
+        window.onload = function() {
+            const dateInput = document.getElementById('id_b_date');
+            setDateMask(dateInput);
+        };
     </script>
 {% endblock %}

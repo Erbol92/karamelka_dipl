@@ -12,9 +12,13 @@ from user_manager.models import UserProxy
 from .forms import CommentForm, DecorationFormSet
 from .models import *
 from .gigachat import push_and_get_photo
-
-
+from .views_admin import send_notify
+from user_manager.models import Profile
+from datetime import datetime
+import threading
 # Create your views here.
+
+
 def convert_minutes_to_hours_and_minutes(total_minutes):
     hours = total_minutes // 60  # Целочисленное деление для получения часов
     minutes = total_minutes % 60  # Остаток от деления для получения минут
@@ -22,10 +26,17 @@ def convert_minutes_to_hours_and_minutes(total_minutes):
 
 
 def home(request):
+    user = request.user
     object_list = Products.objects.all()
+    if user.is_authenticated:
+        user = UserProxy.objects.get(pk=user.pk)
+        if user.check_discount:
+            notify_thread=threading.Thread(target=send_notify(user=user,body_text='Скидка в честь дня рождения!'))
+            notify_thread.start()
     context = {
         'title': 'главная',
         'object_list': object_list,
+        'user':user,
     }
     return render(request, 'main/templates/home.html', context=context)
 
@@ -34,6 +45,9 @@ def product_detail(request, pk: int, name: str):
     object = Products.objects.get(id=pk)
     comments = object.comments.filter(parent__isnull=True, moderated=True)
     form = CommentForm(request.POST or None)
+    user = request.user
+    if user.is_authenticated:
+        user = UserProxy.objects.get(pk=user.pk)
     if request.user.is_authenticated:
         if object.id in set(request.user.orders.all().values_list('product', flat=True)):
             if form.is_valid():
@@ -53,6 +67,7 @@ def product_detail(request, pk: int, name: str):
         'object': object,
         'form': form,
         'comments': comments,
+        'user': user,
     }
     return render(request, 'main/templates/product_detail.html', context=context)
 
@@ -80,7 +95,6 @@ def volume_calc(form: str, size: list):
         case 'circle':
             return 3.14 * size[0] * size[0] * size[1] / 4
 
-
 def constructor(request):
     text = ''
     bisquit, filling, support, layers, shape = '', '', '', '', ''
@@ -103,6 +117,8 @@ def constructor(request):
     }
     decoration_added = False
     if request.method == 'POST':
+        if not request.user.is_authenticated:
+            return redirect('/')
         data = request.POST
         if data.get('action') == 'order':
             if data.get('biscuit', None):
@@ -185,17 +201,18 @@ def constructor(request):
                 cook_time = bisquit.cooking_time + filling.cooking_time
                 print(cook_time)
                 orders_time = Order.objects.filter(state='in_job').aggregate(total=Sum('consrt__cook_time')).get('total')
-                print(Order.objects.filter(state='in_job').values_list('consrt__cook_time',flat=True))
+                # print(Order.objects.filter(state='in_job').values_list('consrt__cook_time',flat=True))
                 if orders_time:
                     total_cook_time_value = cook_time + orders_time
                 else:
                     total_cook_time_value = cook_time
                 print(total_cook_time_value)
-                CartConstructor.objects.create(user=request.user, quantity=1, price=characteristics['price'],
+                user = UserProxy.objects.get(pk=request.user.pk)
+                CartConstructor.objects.create(user=user, quantity=1, price = math.ceil(characteristics['price']) if not user.check_discount() else math.ceil(characteristics['price']*0.9),
                                                data=return_text, cook_time=total_cook_time_value)
                 return_text += f"масса: {characteristics['weight']} кг.\n"
                 return_text += f"цена: {characteristics['price']} руб.\n"
-                # push_and_get_photo(text)
+
                 context.update({'text': return_text})
                 print(text)
 
@@ -293,21 +310,28 @@ def preview_constructor(request):
                     characteristics['filling'].weight * characteristics['filling'].price)
             characteristics['price'] += characteristics.get('sprinks_price', 0) + characteristics.get(
                 'decoration_price', 0) + 100 if data.get('text_decoration') else 0
-            characteristics['price'] = math.ceil(characteristics['price'])
-            return_text += f"масса: {characteristics['weight']} кг.\n"
+            if request.user.is_authenticated:
+                user = UserProxy.objects.get(pk=request.user.pk)
+                characteristics['price'] = math.ceil(characteristics['price']) if not user.check_discount() else math.ceil(characteristics['price']*0.9)
+                return_text += 'цена с учетом скидки \n' if user.check_discount() else ''
+            else:
+                characteristics['price'] = math.ceil(characteristics['price'])
             return_text += f"цена: {characteristics['price']} руб.\n"
-            # push_and_get_photo('Сделай картинку торта: \n'+text)
+
+            return_text += f"масса: {characteristics['weight']} кг.\n"
+
+            push_and_get_photo('Сделай картинку торта: \n'+text)
             cook_time = bisquit.cooking_time + filling.cooking_time
             hour, minutes = convert_minutes_to_hours_and_minutes(cook_time)
             return_text += f'время готовности {hour}ч.:{minutes} мин.'
-            orders = Order.objects.filter(state='in_job').values_list('consrt__cook_time', flat=True)
-            print(orders)
+            # orders = Order.objects.filter(state='in_job').values_list('consrt__cook_time', flat=True)
+            # print(orders)
 
             context = {'text': return_text, 'image_url': f'/media/fl.jpg?ts={int(time.time())}'}
             return JsonResponse(context)
 
 
-@login_required(login_url=reverse_lazy('auth'))
+@login_required(login_url=reverse_lazy('/auth'))
 def cart_view(request):
     context = {
         'title': 'корзины',
@@ -352,9 +376,10 @@ def cart_view(request):
             orders = []
             for cart_id in select_cart:
                 cart = Cart.objects.get(id=int(cart_id))
+                user = UserProxy.objects.get(id=request.user.id)
                 orders.append(
                     Order(user=request.user, product=cart.product, quantity=cart.quantity, place=place, payment=pay,
-                          num_order=current_order_num, payment_summ=cart.get_pos_sum()))
+                          num_order=current_order_num, payment_summ=cart.get_pos_sum() if not user.check_discount() else cart.get_pos_sum()*0.9))
             Order.objects.bulk_create(orders)
             Cart.objects.filter(id__in=select_cart).delete()
 
