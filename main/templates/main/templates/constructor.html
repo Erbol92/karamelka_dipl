@@ -37,7 +37,7 @@
         <div id="formset-container">
             {% for form in formset %}
             <div class="formset_row form-control">
-                {{form.as_div}}
+                {{form}}
                 <button type="button" class="remove-form btn btn-sm btn-outline-danger">удалить</button>
             </div>
             <br>
@@ -137,6 +137,7 @@
 <script>
     let formsetContainer = document.getElementById('formset-container');
     let formCount = {{ formset.total_form_count }}; // Общее количество форм
+    var totalForms = document.getElementById('id_form-TOTAL_FORMS');
     document.getElementById('add-form').addEventListener('click', function() {
         // Клонируем первую форму
         let newForm = formsetContainer.children[0].cloneNode(true);
@@ -151,7 +152,9 @@
         });
         if (formCount <= 2) {
                 formsetContainer.appendChild(newForm);
-                formCount++;}
+                formCount++;
+                totalForms.value = formCount;
+                }
         else
             alert('максимум 3 вида')
     });

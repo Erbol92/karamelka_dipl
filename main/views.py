@@ -232,6 +232,7 @@ def preview_constructor(request):
     characteristics = {}
     decoration_added = False
     formset = DecorationFormSet(request.POST or None)
+
     if request.method == 'POST':
         data = request.POST
         if data.get('biscuit', None):
@@ -248,15 +249,17 @@ def preview_constructor(request):
             characteristics['decoration'] = []
             characteristics['decoration_price'] = 0
             for form in formset:
-                decoration = form.cleaned_data.get('decoration')
-                quantity = form.cleaned_data.get('quantity')
-                if decoration and quantity:
-                    if not decoration_added:
-                        text += 'Украшения:\n'
-                        decoration_added = True
-                    text += f'{decoration.title}: {quantity} штук\n'
-                    characteristics['decoration'].append({decoration: quantity})
-                    characteristics['decoration_price'] += decoration.price * quantity
+                if form.is_valid():
+                    decoration = form.cleaned_data.get('decoration')
+                    quantity = form.cleaned_data.get('quantity')
+                    print(decoration,quantity)
+                    if decoration and quantity:
+                        if not decoration_added:
+                            text += 'Украшения:\n'
+                            decoration_added = True
+                        text += f'{decoration.title}: {quantity} штук\n'
+                        characteristics['decoration'].append({decoration: quantity})
+                        characteristics['decoration_price'] += decoration.price * quantity
 
         if data.getlist('sprinkles'):
             characteristics['sprinks_price'] = 0
@@ -310,6 +313,12 @@ def preview_constructor(request):
                     characteristics['filling'].weight * characteristics['filling'].price)
             characteristics['price'] += characteristics.get('sprinks_price', 0) + characteristics.get(
                 'decoration_price', 0) + 100 if data.get('text_decoration') else 0
+
+            with open('main/coefficient.json') as f:
+                coefficient = json.load(f)
+                price_coef = coefficient["decoration"]*len(characteristics['decoration'])+coefficient["sprinkles"]*len(data.getlist('sprinkles'))+coefficient["layers"]*layers+coefficient['shape'][shape]
+                print(price_coef)
+
             if request.user.is_authenticated:
                 user = UserProxy.objects.get(pk=request.user.pk)
                 characteristics['price'] = math.ceil(characteristics['price']) if not user.check_discount() else math.ceil(characteristics['price']*0.9)
@@ -320,12 +329,10 @@ def preview_constructor(request):
 
             return_text += f"масса: {characteristics['weight']} кг.\n"
 
-            push_and_get_photo('Сделай картинку торта: \n'+text)
+            # push_and_get_photo('Сделай картинку торта: \n'+text)
             cook_time = bisquit.cooking_time + filling.cooking_time
             hour, minutes = convert_minutes_to_hours_and_minutes(cook_time)
             return_text += f'время готовности {hour}ч.:{minutes} мин.'
-            # orders = Order.objects.filter(state='in_job').values_list('consrt__cook_time', flat=True)
-            # print(orders)
 
             context = {'text': return_text, 'image_url': f'/media/fl.jpg?ts={int(time.time())}'}
             return JsonResponse(context)
