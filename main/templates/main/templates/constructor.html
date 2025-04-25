@@ -37,7 +37,7 @@
         <div id="formset-container">
             {% for form in formset %}
             <div class="formset_row form-control">
-                {{form}}
+                {{form.as_div}}
                 <button type="button" class="remove-form btn btn-sm btn-outline-danger">удалить</button>
             </div>
             <br>
@@ -108,6 +108,7 @@
                                 <pre>${data.text}</pre>
                                 <h2>Вот ваше изображение:</h2>
                                 <img src="${data.image_url}" width="312" alt="Полученное изображение"/>
+                                <p>*если хотите сохранить изображение, используйте правую кнопку мыши</p>
                         `;
                         const loader = document.getElementById('loader');
                         loader.style.display = 'none';

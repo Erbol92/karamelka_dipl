@@ -100,6 +100,7 @@ def constructor(request):
     bisquit, filling, support, layers, shape = '', '', '', '', ''
     shape_ru = shape
     return_text = ''
+    price_coef = 1
     characteristics = {}
     bisquits = Bisquit.objects.all()
     fillings = Filling.objects.all()
@@ -197,6 +198,14 @@ def constructor(request):
                         characteristics['filling'].weight * characteristics['filling'].price)
                 characteristics['price'] += characteristics.get('sprinks_price', 0) + characteristics.get(
                     'decoration_price', 0) + 100 if data.get('text_decoration') else 0
+                with open('main/coefficient.json') as f:
+                    coefficient = json.load(f)
+                    price_coef += coefficient["decoration"] * len(characteristics['decoration']) + coefficient[
+                        "sprinkles"] * len(data.getlist('sprinkles')) + coefficient["layers"] * layers + \
+                                 coefficient['shape'][shape]
+                    print(price_coef)
+                    return_text += f"коэффициент сложности: {price_coef}\n"
+                    characteristics['price'] *= price_coef
                 characteristics['price'] = math.ceil(characteristics['price'])
                 cook_time = bisquit.cooking_time + filling.cooking_time
                 print(cook_time)
@@ -229,6 +238,7 @@ def preview_constructor(request):
     bisquit, filling, support, layers, shape = '', '', '', '', ''
     shape_ru = shape
     return_text = ''
+    price_coef=1
     characteristics = {}
     decoration_added = False
     formset = DecorationFormSet(request.POST or None)
@@ -316,8 +326,9 @@ def preview_constructor(request):
 
             with open('main/coefficient.json') as f:
                 coefficient = json.load(f)
-                price_coef = coefficient["decoration"]*len(characteristics['decoration'])+coefficient["sprinkles"]*len(data.getlist('sprinkles'))+coefficient["layers"]*layers+coefficient['shape'][shape]
+                price_coef += coefficient["decoration"]*len(characteristics['decoration'])+coefficient["sprinkles"]*len(data.getlist('sprinkles'))+coefficient["layers"]*layers+coefficient['shape'][shape]
                 print(price_coef)
+                characteristics['price'] *= price_coef
 
             if request.user.is_authenticated:
                 user = UserProxy.objects.get(pk=request.user.pk)
@@ -328,8 +339,8 @@ def preview_constructor(request):
             return_text += f"цена: {characteristics['price']} руб.\n"
 
             return_text += f"масса: {characteristics['weight']} кг.\n"
-
-            # push_and_get_photo('Сделай картинку торта: \n'+text)
+            push_and_get_photo('Сделай картинку торта: \n'+text)
+            return_text += f"коэффициент сложности: {price_coef}\n"
             cook_time = bisquit.cooking_time + filling.cooking_time
             hour, minutes = convert_minutes_to_hours_and_minutes(cook_time)
             return_text += f'время готовности {hour}ч.:{minutes} мин.'
@@ -439,3 +450,4 @@ def add_quant_cart(request, type: str, cart_id: int):
             cart = Cart.objects.get(id=cart_id)
     messages.success(request, cart.add_quant_to_cart())
     return redirect('/main/cart_view/')
+

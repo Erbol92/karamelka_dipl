@@ -20,4 +20,7 @@ urlpatterns = [
     path('moderate_comments/', views_admin.moderate_comments, name='moderate_comments'),
     path('app_del_comments/<str:fun>/<int:pk>/', views_admin.app_del_comments, name='app_del_comments'),
 
+    path('configs/', views_admin.configs, name='configs'),
+
+
 ]

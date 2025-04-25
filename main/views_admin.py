@@ -7,6 +7,12 @@ import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from django.contrib.admin.views.decorators import staff_member_required
+from django.contrib.auth.decorators import login_required
+from django.urls import reverse_lazy
+import json
+
+
+
 # Укажите ваши учетные данные
 username = 'erbolbaik@mail.ru'  # Ваш email
 password = 'kqhr0eEnyDBuARiUnGVN'         # Ваш пароль
@@ -87,3 +93,15 @@ def app_del_comments(request, fun: str,pk:int):
             comment.apply()
     
     return redirect(request.META.get('HTTP_REFERER'))
+
+@login_required(login_url=reverse_lazy('auth'))
+def configs(request):
+    context = {}
+    with open('main/LayerSize.json') as lf:
+        layers = json.load(lf)
+        context['layers'] = layers
+    with open('main/coefficient.json') as cf:
+        coef = json.load(cf)
+        context['coef'] = coef
+
+    return render(request, 'main/templates/for_admin/configs.html', context=context)

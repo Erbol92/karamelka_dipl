@@ -1,0 +1,31 @@
+{% extends 'main/templates/base.html' %}
+{% load custom_filters %}
+{% block content %}
+<h3 class="bg-light">формы ярусов</h3>
+{% for key, value in layers.items %}
+<p class="fw-bold bg-info">{{ key | translate }}: </p>
+{% for sizes in value %}
+{% for name, size in sizes.items %}
+<span>{{ name|translate }}: {{size}}</span>
+{% endfor %}
+<hr>
+{% endfor %}
+{% endfor %}
+
+<h3 class="bg-light">коэффициенты</h3>
+{% for key, value in coef.items %}
+<div class="item">
+        <label style="width:150px" for="{{ key }}">{{ key | translate}}:</label>
+    {% if value.items %}
+    {% for sub_key, sub_value in value.items %}
+    <div class="item ms-3">
+        <label style="width:150px" for="{{ sub_key }}">{{ sub_key | translate}}:</label>
+        <input type="text" id="{{ sub_key }}" name="{{ sub_key }}" value="{{ sub_value }}">
+    </div>
+    {% endfor %}
+    {% else %}
+    <input type="text" id="{{ key }}" name="{{ key }}" value="{{ value }}">
+    {% endif %}
+</div>
+{% endfor %}
+{% endblock %}
