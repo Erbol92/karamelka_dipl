@@ -152,3 +152,6 @@ CRISPY_TEMPLATE_PACK = "bootstrap5"
 
 
 coefficient = 1.3
+
+days_before = 2
+days_after = 1

@@ -32,7 +32,11 @@
 </div>
 <div>
     {% if user.carts.all or user.carts_constr.all %}
+
     <form action="" method="post" style="display: none;" id="cart_form">
+        <button type="button" class="btn btn-sm btn-info fw-bold" onclick="selectAll('select_cart')">выбрать все</button>
+        <button type="reset" class="btn btn-sm btn-warning fw-bold">сбросить</button>
+
         {% csrf_token %}
         <div class="row">
             <div class="col">наименование</div>
@@ -378,5 +382,13 @@
                 console.log(suggestion);
             }
     });
+</script>
+<script>
+    function selectAll(className) {
+    const elements = document.getElementsByClassName(className);
+    Array.from(elements).forEach((element)=>{
+        element.checked = 'checked';
+    })
+    }
 </script>
 {% endblock %}

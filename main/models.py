@@ -210,34 +210,6 @@ class Filling(models.Model):
         })
 
 
-class CartConstructor(models.Model):
-    user = models.ForeignKey(
-        User, verbose_name='пользователь', on_delete=models.CASCADE, null=False, related_name='carts_constr')
-    data = models.TextField('данные')
-    quantity = models.IntegerField('количество', default=1)
-    price = models.IntegerField('Цена', default=0)
-    cook_time = models.IntegerField('время приготовления',default=0)
-
-    def get_sum(self):
-        return self.price * self.quantity
-
-    def remove_from_cart(self):
-        self.quantity -= 1
-        self.save()
-        return f'удалено из корзины'
-
-    def add_quant_to_cart(self):
-        self.quantity += 1
-        self.save()
-        return f'добавлено в корзину'
-
-    def __str__(self):
-        return f'{self.user}'
-
-    class Meta:
-        verbose_name = 'Конструктор корзина'
-        verbose_name_plural = 'Конструктор корзина'
-
 
 class Order(models.Model):
     user = models.ForeignKey(
@@ -315,4 +287,36 @@ class Sprinkles(models.Model):
     class Meta:
         verbose_name = 'посыпка'
         verbose_name_plural = 'посыпки'
+
+class CartConstructor(models.Model):
+    user = models.ForeignKey(
+        User, verbose_name='пользователь', on_delete=models.CASCADE, null=False, related_name='carts_constr')
+    data = models.TextField('данные')
+    quantity = models.IntegerField('количество', default=1)
+    price = models.IntegerField('Цена', default=0)
+    cook_time = models.IntegerField('время приготовления',default=0)
+    sprinkles = models.ManyToManyField(Sprinkles, verbose_name='посыпки', null=True, blank=True)
+    decoration = models.ManyToManyField(Decoration, verbose_name='украшения', null=True, blank=True)
+    filling = models.ForeignKey(Filling, verbose_name='начинка', on_delete=models.DO_NOTHING, null=True)
+    bisquit = models.ForeignKey(Bisquit, verbose_name='Бисквит', on_delete=models.DO_NOTHING, null=True)
+
+    def get_sum(self):
+        return self.price * self.quantity
+
+    def remove_from_cart(self):
+        self.quantity -= 1
+        self.save()
+        return f'удалено из корзины'
+
+    def add_quant_to_cart(self):
+        self.quantity += 1
+        self.save()
+        return f'добавлено в корзину'
+
+    def __str__(self):
+        return f'{self.user}'
+
+    class Meta:
+        verbose_name = 'Конструктор корзина'
+        verbose_name_plural = 'Конструктор корзина'
 

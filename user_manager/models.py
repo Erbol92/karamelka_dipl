@@ -6,17 +6,23 @@ from django.core.files.base import ContentFile
 from django.contrib.auth.models import User
 from diplom.settings import MEDIA_ROOT
 from main.models import Cart, Products
-from datetime import datetime
+from datetime import datetime, timedelta
+from diplom.settings import days_after, days_before
 # Create your models here.
 
 class UserProxy(User):
     class Meta:
         proxy = True
 
-    def check_discount(self):
+    def check_discount(self, days_before=days_before, days_after=days_after):
         profile = self.profile
-        if self.profile.b_date:
-            return profile.b_date.day == datetime.now().day and profile.b_date.month == datetime.now().month
+        if profile.b_date:
+            today = datetime.now().date()
+            dm_date = profile.b_date.replace(year=today.year)
+            start_date = dm_date - timedelta(days=days_before)
+            end_date = dm_date + timedelta(days=days_after)
+            print(start_date,today,end_date)
+            return start_date <= today <= end_date
         return False
 
     def add_cart(self, product):

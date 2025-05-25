@@ -26,8 +26,9 @@ def convert_minutes_to_hours_and_minutes(total_minutes):
 
 
 def home(request):
-    user = request.user
+
     object_list = Products.objects.all()
+    user = request.user
     if user.is_authenticated:
         user = UserProxy.objects.get(pk=user.pk)
         if user.check_discount:
@@ -74,9 +75,16 @@ def product_detail(request, pk: int, name: str):
 
 def category_page(request, category):
     object_list = Products.objects.filter(category__slug=category)
+    user = request.user
+    if user.is_authenticated:
+        user = UserProxy.objects.get(pk=user.pk)
+        if user.check_discount:
+            notify_thread = threading.Thread(target=send_notify(user=user, body_text='Скидка в честь дня рождения!'))
+            notify_thread.start()
     context = {
         'title': 'главная',
         'object_list': object_list,
+        'user':user,
     }
     return render(request, 'main/templates/home.html', context=context)
 
@@ -100,6 +108,8 @@ def constructor(request):
     bisquit, filling, support, layers, shape = '', '', '', '', ''
     shape_ru = shape
     return_text = ''
+    sprinks = None
+    decoration = None
     price_coef = 1
     characteristics = {}
     bisquits = Bisquit.objects.all()
@@ -217,8 +227,12 @@ def constructor(request):
                     total_cook_time_value = cook_time
                 print(total_cook_time_value)
                 user = UserProxy.objects.get(pk=request.user.pk)
-                CartConstructor.objects.create(user=user, quantity=1, price = math.ceil(characteristics['price']) if not user.check_discount() else math.ceil(characteristics['price']*0.9),
-                                               data=return_text, cook_time=total_cook_time_value)
+                cart = CartConstructor.objects.create(user=user, quantity=1, price = math.ceil(characteristics['price']) if not user.check_discount() else math.ceil(characteristics['price']*0.9),
+                                               data=return_text, cook_time=total_cook_time_value, bisquit=bisquit, filling=filling)
+                if sprinks:
+                    cart.sprinkles.add(sprinks)
+                if decoration:
+                    cart.decoration.add(decoration)
                 return_text += f"масса: {characteristics['weight']} кг.\n"
                 return_text += f"цена: {characteristics['price']} руб.\n"
 

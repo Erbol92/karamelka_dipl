@@ -1,9 +1,0 @@
-{
-  "decoration": 0.1,
-  "sprinkles": 0.05,
-  "shape": {
-    "rectangle": 0.1,
-    "circle": 0.05
-  },
-  "layers": 0.1
-}

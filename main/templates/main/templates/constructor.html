@@ -69,7 +69,9 @@
         <div id="layers-container">
         </div>
         <br>
+        {% if user.is_authenticated %}
         <button type="submit" class="btn btn-outline-secondary" name="action" value="order">Заказать</button>
+        {% endif %}
         <button type="submit" class="btn btn-outline-secondary" name="action" id="generate" value="generate">Генерация
         </button>
     </form>
@@ -106,7 +108,7 @@
                     if (data.image_url) {
                         resultDiv.innerHTML = `
                                 <pre>${data.text}</pre>
-                                <h2>Вот ваше изображение:</h2>
+                                <h2>Изображение созданного торта (может отличаться от изделия):</h2>
                                 <img src="${data.image_url}" width="312" alt="Полученное изображение"/>
                                 <p>*если хотите сохранить изображение, используйте правую кнопку мыши</p>
                         `;
