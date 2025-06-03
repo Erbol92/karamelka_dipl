@@ -19,7 +19,8 @@ urlpatterns = [
     path('order_status/<int:pk>/', views_admin.order_status, name='order_status'),
     path('moderate_comments/', views_admin.moderate_comments, name='moderate_comments'),
     path('app_del_comments/<str:fun>/<int:pk>/', views_admin.app_del_comments, name='app_del_comments'),
-
+    path('make_cart/', views_admin.make_cart, name='make_cart'),
+#
     path('configs/', views_admin.configs, name='configs'),
 
 

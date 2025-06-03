@@ -91,6 +91,7 @@
                         {% if user.is_staff or user.is_superuser %}
                         <li><a class="dropdown-item" href="{% url 'order_processing' %}">обработка заказов</a></li>
                         <li><a class="dropdown-item" href="{% url 'moderate_comments' %}">модерация комментариев</a>
+                            <li><a class="dropdown-item" href="{% url 'make_cart' %}">сформировать заказ</a>
                         </li>
                         {% endif %}
                         <li>

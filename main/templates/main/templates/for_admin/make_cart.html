@@ -1,0 +1,12 @@
+{% extends 'main/templates/base.html' %}
+{% load crispy_forms_tags %}
+{% block content %}
+<h3 class="bg-light">сформировать торт по личному описанию</h3>
+<form action="" method="POST">
+    {% csrf_token %}
+    {{form|crispy}}
+
+    <button type="submit">применить</button>
+</form>
+
+{% endblock %}

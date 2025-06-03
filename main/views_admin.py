@@ -105,6 +105,7 @@ def app_del_comments(request, fun: str, pk: int):
 def configs(request):
     def convert_to_float(value):
         return float(value.replace(',', '.'))
+
     context = {}
     with open('main/LayerSize.json') as lf:
         layers = json.load(lf)
@@ -123,7 +124,20 @@ def configs(request):
             },
             "layers": convert_to_float(data.get('layers', 0))
         }
-        with open('main/coefficient.json','w') as json_file:
+        with open('main/coefficient.json', 'w') as json_file:
             json.dump(data_dict, json_file, indent=4)
             return redirect('configs')
     return render(request, 'main/templates/for_admin/configs.html', context=context)
+
+
+from .forms import CreateCartForm
+
+
+def make_cart(request):
+    form = CreateCartForm(request.POST or None)
+    if form.is_valid():
+        form.save()
+    context = {
+        'form': form,
+    }
+    return render(request, 'main/templates/for_admin/make_cart.html', context=context)
