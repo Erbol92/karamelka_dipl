@@ -75,7 +75,7 @@
         <div class="bg-light">
             <p>{{reply.content}}</p>
             <button type="button" class="badge bg-primary text-wrap"
-                onclick="document.getElementById('reply-form-{{ reply.id }}').style.display='block'; return false;">ответить</button>
+                onclick="document.getElementById('reply-form-{{ comment.id }}').style.display='block'; return false;">ответить</button>
         </div>
     </div>
     {% endfor %}

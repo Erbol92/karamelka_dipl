@@ -50,7 +50,7 @@ def product_detail(request, pk: int, name: str):
     if user.is_authenticated:
         user = UserProxy.objects.get(pk=user.pk)
     if request.user.is_authenticated:
-        if object.id in set(request.user.orders.all().values_list('product', flat=True)):
+        if object.id in set(request.user.orders.all().values_list('product', flat=True)) or request.user.is_staff:
             if form.is_valid():
                 parent_id = request.POST.get('parent_id')
                 comment = form.save(commit=False)
@@ -58,6 +58,9 @@ def product_detail(request, pk: int, name: str):
                 comment.user = request.user
                 if parent_id:
                     comment.parent = get_object_or_404(Comment, id=parent_id)
+                if request.user.is_staff or request.user.is_superuser:
+                    comment.moderated=True
+
                 comment.save()
                 return redirect('product_detail', pk=object.id, name=object.name_product)
         else:
@@ -230,7 +233,7 @@ def constructor(request):
                 cart = CartConstructor.objects.create(user=user, quantity=1, price = math.ceil(characteristics['price']) if not user.check_discount() else math.ceil(characteristics['price']*0.9),
                                                data=return_text, cook_time=total_cook_time_value, bisquit=bisquit, filling=filling)
                 if sprinks:
-                    cart.sprinkles.add(sprinks)
+                    cart.sprinkles.add(*sprinks)
                 if decoration:
                     cart.decoration.add(decoration)
                 return_text += f"масса: {characteristics['weight']} кг.\n"
