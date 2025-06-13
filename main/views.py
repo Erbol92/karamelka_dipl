@@ -176,7 +176,7 @@ def constructor(request):
                     case 'circle':
                         shape_ru = 'круг'
                 characteristics['shape_ru'] = shape_ru
-                text += f'форма уровней {shape_ru} \n'
+                text += f'форма ярусов {shape_ru} \n'
             if data.get('text_decoration'):
                 text_decoration = data.get('text_decoration')
                 characteristics['text_decoration'] = text_decoration
@@ -308,7 +308,7 @@ def preview_constructor(request):
                 case 'circle':
                     shape_ru = 'круг'
             characteristics['shape_ru'] = shape_ru
-            text += f'форма уровней {shape_ru} \n'
+            text += f'форма ярусов {shape_ru} \n'
         if data.get('text_decoration'):
             text_decoration = data.get('text_decoration')
             characteristics['text_decoration'] = text_decoration
@@ -324,6 +324,7 @@ def preview_constructor(request):
                     text += 'трехъярусный\n'
             characteristics['volume'] = 0
             return_text = text
+
             for i in range(1, layers + 1):
                 size = data.get(f"size-{i}").split('x')
 
@@ -357,13 +358,12 @@ def preview_constructor(request):
             if request.user.is_authenticated:
                 user = UserProxy.objects.get(pk=request.user.pk)
                 characteristics['price'] = math.ceil(characteristics['price']) if not user.check_discount() else math.ceil(characteristics['price']*0.9)
-                return_text = 'цена с учетом скидки \n' +return_text if user.check_discount() else ''
+                return_text += 'цена с учетом скидки \n' if user.check_discount() else ''
             else:
                 characteristics['price'] = math.ceil(characteristics['price'])
-            return_text = f"<strong class='fs-4'>цена: {characteristics['price']} руб.</strong>\n" + return_text
-
             return_text = f"<strong  class='fs-4'>масса: {characteristics['weight']} кг.</strong>\n" + return_text
             return_text = f"<strong  class='fs-4'>ккал: {characteristics['calorie']} </strong>\n" + return_text
+            return_text = f"<strong class='fs-4'>цена: {characteristics['price']} руб.</strong>\n" + return_text
             # push_and_get_photo('Сделай картинку торта: \n'+text)
             return_text += f"коэффициент сложности: {price_coef}\n"
             cook_time = bisquit.cooking_time + filling.cooking_time
