@@ -266,6 +266,7 @@ def preview_constructor(request):
             bisquit = Bisquit.objects.get(id=data['biscuit'])
             text += f'Основа: {bisquit.title}\n'
             characteristics['bisquit'] = bisquit
+            characteristics['calorie']=0
 
         if data.get('filling', None):
             filling = Filling.objects.get(id=data['filling'])
@@ -287,6 +288,7 @@ def preview_constructor(request):
                         text += f'{decoration.title}: {quantity} штук\n'
                         characteristics['decoration'].append({decoration: quantity})
                         characteristics['decoration_price'] += decoration.price * quantity
+                        characteristics['calorie'] += decoration.calorie * quantity
 
         if data.getlist('sprinkles'):
             characteristics['sprinks_price'] = 0
@@ -295,6 +297,7 @@ def preview_constructor(request):
             text += ', '.join(sprink.title for sprink in sprinks)
             characteristics['sprinks'] = sprinks
             characteristics['sprinks_price'] += sum(sprink.price for sprink in sprinks)
+            characteristics['calorie'] += sum(sprink.calorie for sprink in sprinks)
             text += '\n'
 
         if data.get('shape'):
@@ -335,12 +338,16 @@ def preview_constructor(request):
             characteristics['weight'] = math.ceil(characteristics['volume'] * (
                     characteristics['bisquit'].weight + 0.3 * characteristics['filling'].weight))
 
+            characteristics['calorie'] += math.ceil(characteristics['volume'] * (
+                    characteristics['bisquit'].weight*characteristics['bisquit'].calorie + 0.3 * characteristics['filling'].weight*characteristics['filling'].calorie))
+
+
+
             characteristics['price'] = characteristics['volume'] * (
                     characteristics['bisquit'].weight * characteristics['bisquit'].price + 0.3 *
                     characteristics['filling'].weight * characteristics['filling'].price)
             characteristics['price'] += characteristics.get('sprinks_price', 0) + characteristics.get(
                 'decoration_price', 0) + 100 if data.get('text_decoration') else 0
-
             with open('main/coefficient.json') as f:
                 coefficient = json.load(f)
                 price_coef += coefficient["decoration"]*len(characteristics['decoration'])+coefficient["sprinkles"]*len(data.getlist('sprinkles'))+coefficient["layers"]*layers+coefficient['shape'][shape]
@@ -350,13 +357,14 @@ def preview_constructor(request):
             if request.user.is_authenticated:
                 user = UserProxy.objects.get(pk=request.user.pk)
                 characteristics['price'] = math.ceil(characteristics['price']) if not user.check_discount() else math.ceil(characteristics['price']*0.9)
-                return_text += 'цена с учетом скидки \n' if user.check_discount() else ''
+                return_text = 'цена с учетом скидки \n' +return_text if user.check_discount() else ''
             else:
                 characteristics['price'] = math.ceil(characteristics['price'])
-            return_text += f"цена: {characteristics['price']} руб.\n"
+            return_text = f"<strong class='fs-4'>цена: {characteristics['price']} руб.</strong>\n" + return_text
 
-            return_text += f"масса: {characteristics['weight']} кг.\n"
-            push_and_get_photo('Сделай картинку торта: \n'+text)
+            return_text = f"<strong  class='fs-4'>масса: {characteristics['weight']} кг.</strong>\n" + return_text
+            return_text = f"<strong  class='fs-4'>ккал: {characteristics['calorie']} </strong>\n" + return_text
+            # push_and_get_photo('Сделай картинку торта: \n'+text)
             return_text += f"коэффициент сложности: {price_coef}\n"
             cook_time = bisquit.cooking_time + filling.cooking_time
             hour, minutes = convert_minutes_to_hours_and_minutes(cook_time)

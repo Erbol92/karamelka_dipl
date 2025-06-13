@@ -36,7 +36,7 @@ class Products(models.Model):
         CategoryProduct, verbose_name='категория', on_delete=models.CASCADE, null=False, related_name='prod_cat')
     name_product = models.CharField('Название продукта', max_length=50)
     description = models.TextField('Описание')
-    price = models.FloatField('Цена товара', default=0)
+    price = models.IntegerField('Цена товара', default=0)
     quantity = models.IntegerField('Кол-во', default=0)
     weight = models.IntegerField('вес продукта', default=0)
     image = models.ImageField('фото', upload_to=image_path)
@@ -268,6 +268,7 @@ class Comment(models.Model):
 class Decoration(models.Model):
     title = models.CharField('название', max_length=100)
     price = models.IntegerField('Цена', default=0)
+    calorie = models.IntegerField('Ккал/ед', default=0)
 
     def __str__(self):
         return f'{self.title}'
@@ -280,6 +281,7 @@ class Decoration(models.Model):
 class Sprinkles(models.Model):
     title = models.CharField('название', max_length=100)
     price = models.IntegerField('Цена', default=0)
+    calorie = models.IntegerField('Ккал/кг', default=0)
 
     def __str__(self):
         return f'{self.title}'

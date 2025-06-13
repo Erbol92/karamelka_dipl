@@ -107,7 +107,7 @@
                 const resultDiv = document.getElementById('result');
                     if (data.image_url) {
                         resultDiv.innerHTML = `
-                                <pre>${data.text}</pre>
+                                <p style="white-space: pre-wrap;">${data.text}</p>
                                 <h2>Изображение созданного торта (может отличаться от изделия):</h2>
                                 <img src="${data.image_url}" width="312" alt="Полученное изображение"/>
                                 <p>*если хотите сохранить изображение, используйте правую кнопку мыши</p>
